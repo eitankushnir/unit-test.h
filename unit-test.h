@@ -6,6 +6,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
+
 #define RESET "\x1B[0m"
 
 // --- Regular ---
@@ -118,12 +120,22 @@ RUNNER_INFO _ut_global_runner = {0};
 #define _UT_ASSERT_OP(type, fmt, cmp, actual, expected, op, rel) _UT_RUN_OP(type, fmt, cmp, actual, expected, op, rel, 1)
 #define _UT_EXPECT_OP(type, fmt, cmp, actual, expected, op, rel) _UT_RUN_OP(type, fmt, cmp, actual, expected, op, rel, 0)
 
-#define ASSERT_EQ_INT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, ==, equal to)
-#define ASSERT_NE_INT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, !=, not equal to)
-#define ASSERT_GT_INT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, >, greater than)
-#define ASSERT_LT_INT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, <, lower than)
-#define ASSERT_GE_INT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, >=, greater or equal to)
-#define ASSERT_LE_INT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, <=, lower or equal to)
+#define ASSERT_INT_EQ(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, ==, equal to)
+#define ASSERT_INT_NE(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, !=, not equal to)
+#define ASSERT_INT_GT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, >, greater than)
+#define ASSERT_INT_LT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, <, lower than)
+#define ASSERT_INT_GE(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, >=, greater or equal to)
+#define ASSERT_INT_LE(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, <=, lower or equal to)
+
+#define ASSERT_UINT_EQ(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, ==, equal to)
+#define ASSERT_UINT_NE(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, !=, not equal to)
+#define ASSERT_UINT_GT(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, >, greater than)
+#define ASSERT_UINT_LT(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, <, lower than)
+#define ASSERT_UINT_GE(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, >=, greater or equal to)
+#define ASSERT_UINT_LE(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, <=, lower or equal to)
+
+#define ASSERT_STR_EQ(actual, expected) _UT_ASSERT_OP(const char *, "%s", _ut_internal_cmp_str, actual, expected, ==, equal to)
+#define ASSERT_STR_NE(actual, expected) _UT_ASSERT_OP(const char *, "%s", _ut_internal_cmp_str, actual, expected, !=, not equal to)
 
 // EXPECTS
 #define EXPECT_TRUE(cond) \
@@ -132,12 +144,22 @@ RUNNER_INFO _ut_global_runner = {0};
 #define EXPECT_FALSE(cond) \
   _ut_internal_check_condition(!(cond), "!(" #cond ")", __FILE__, __LINE__, 0)
 
-#define EXPECT_EQ_INT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, ==, equal to)
-#define EXPECT_NE_INT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, !=, not equal to)
-#define EXPECT_GT_INT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, >, greater than)
-#define EXPECT_LT_INT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, <, lower than)
-#define EXPECT_GE_INT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, >=, greater or equal to)
-#define EXPECT_LE_INT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, <=, lower or equal to)
+#define EXPECT_INT_EQ(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, ==, equal to)
+#define EXPECT_INT_NE(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, !=, not equal to)
+#define EXPECT_INT_GT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, >, greater than)
+#define EXPECT_INT_LT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, <, lower than)
+#define EXPECT_INT_GE(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, >=, greater or equal to)
+#define EXPECT_INT_LE(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, <=, lower or equal to)
+
+#define EXPECT_UINT_EQ(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, ==, equal to)
+#define EXPECT_UINT_NE(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, !=, not equal to)
+#define EXPECT_UINT_GT(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, >, greater than)
+#define EXPECT_UINT_LT(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, <, lower than)
+#define EXPECT_UINT_GE(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, >=, greater or equal to)
+#define EXPECT_UINT_LE(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, <=, lower or equal to)
+
+#define EXPECT_STR_EQ(actual, expected) _UT_EXPECT_OP(const char *, "%s", _ut_internal_cmp_str, actual, expected, ==, equal to)
+#define EXPECT_STR_NE(actual, expected) _UT_EXPECT_OP(const char *, "%s", _ut_internal_cmp_str, actual, expected, !=, not equal to)
 
 void _ut_internal_init_suite(SUITE_INFO *s, const char *name);
 void _ut_internal_register_suite(SUITE_INFO *s);
@@ -154,6 +176,7 @@ int _ut_internal_check_condition(int condition, const char *condition_string, co
 // CMPS
 int _ut_internal_cmp_int(intmax_t a, intmax_t b);
 int _ut_internal_cmp_uint(uintmax_t a, uintmax_t b);
+int _ut_internal_cmp_str(const char *a, const char *b);
 int _ut_internal_report_fail_cmp(const char *filename, int linenr, int fatal, const char *fmt, ...);
 
 #define RUN_ALL_TESTS()           \
@@ -335,5 +358,18 @@ int _ut_internal_cmp_int(intmax_t a, intmax_t b) {
 
 int _ut_internal_cmp_uint(uintmax_t a, uintmax_t b) {
   return (a > b) - (a < b);
+}
+
+int _ut_internal_cmp_str(const char *a, const char *b) {
+  if (a == b)
+    return 0;
+
+  if (a == NULL)
+    return -1;
+
+  if (b == NULL)
+    return 1;
+
+  return strcmp(a, b);
 }
 #endif // UNIT_TEST_IMPLEMENTATION
