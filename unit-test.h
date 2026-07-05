@@ -2,6 +2,7 @@
 #define TERMINAL_COLORS_H_
 
 // --- Utility ---
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -98,24 +99,31 @@ RUNNER_INFO _ut_global_runner = {0};
       return;                                                                          \
   } while (0)
 
-#define _UT_ASSERT_OP_INT(actual, expected, op, rel)                                            \
-  do {                                                                                          \
-    intmax_t a = (actual);                                                                      \
-    intmax_t b = (expected);                                                                    \
-    if (!(a op b)) {                                                                            \
-      _ut_internal_report_fail_cmp_ints(a, b, #actual, #expected, #rel, __FILE__, __LINE__, 1); \
-      return;                                                                                   \
-    } else {                                                                                    \
-      _ut_global_runner.current_test->assertions_passed++;                                      \
-    }                                                                                           \
+#define _UT_RUN_OP(type, fmt, cmp, actual, expected, op, rel, fatal)                                                \
+  do {                                                                                                              \
+    type a = (actual);                                                                                              \
+    type b = (expected);                                                                                            \
+    int res = cmp(a, b);                                                                                            \
+    if (!(res op 0)) {                                                                                              \
+      _ut_internal_report_fail_cmp(__FILE__, __LINE__, fatal,                                                       \
+                                   "Expected " BOLD_MAGENTA #actual " " RESET "(" BOLD_MAGENTA fmt RESET ") " RESET \
+                                   "to be " #rel " " BOLD_CYAN #expected " " RESET "(" BOLD_CYAN fmt RESET ")",     \
+                                   a, b);                                                                           \
+      if (fatal)                                                                                                    \
+        return;                                                                                                     \
+    } else {                                                                                                        \
+      _ut_global_runner.current_test->assertions_passed++;                                                          \
+    }                                                                                                               \
   } while (0)
+#define _UT_ASSERT_OP(type, fmt, cmp, actual, expected, op, rel) _UT_RUN_OP(type, fmt, cmp, actual, expected, op, rel, 1)
+#define _UT_EXPECT_OP(type, fmt, cmp, actual, expected, op, rel) _UT_RUN_OP(type, fmt, cmp, actual, expected, op, rel, 0)
 
-#define ASSERT_EQ_INT(actual, expected) _UT_ASSERT_OP_INT(actual, expected, ==, equal to)
-#define ASSERT_NE_INT(actual, expected) _UT_ASSERT_OP_INT(actual, expected, !=, not equal to)
-#define ASSERT_GT_INT(actual, expected) _UT_ASSERT_OP_INT(actual, expected, >, greater than)
-#define ASSERT_LT_INT(actual, expected) _UT_ASSERT_OP_INT(actual, expected, <, lower than)
-#define ASSERT_GE_INT(actual, expected) _UT_ASSERT_OP_INT(actual, expected, >=, greater or equal to)
-#define ASSERT_LE_INT(actual, expected) _UT_ASSERT_OP_INT(actual, expected, <=, lower or equal to)
+#define ASSERT_EQ_INT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, ==, equal to)
+#define ASSERT_NE_INT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, !=, not equal to)
+#define ASSERT_GT_INT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, >, greater than)
+#define ASSERT_LT_INT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, <, lower than)
+#define ASSERT_GE_INT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, >=, greater or equal to)
+#define ASSERT_LE_INT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, <=, lower or equal to)
 
 // EXPECTS
 #define EXPECT_TRUE(cond) \
@@ -123,6 +131,13 @@ RUNNER_INFO _ut_global_runner = {0};
 
 #define EXPECT_FALSE(cond) \
   _ut_internal_check_condition(!(cond), "!(" #cond ")", __FILE__, __LINE__, 0)
+
+#define EXPECT_EQ_INT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, ==, equal to)
+#define EXPECT_NE_INT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, !=, not equal to)
+#define EXPECT_GT_INT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, >, greater than)
+#define EXPECT_LT_INT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, <, lower than)
+#define EXPECT_GE_INT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, >=, greater or equal to)
+#define EXPECT_LE_INT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, <=, lower or equal to)
 
 void _ut_internal_init_suite(SUITE_INFO *s, const char *name);
 void _ut_internal_register_suite(SUITE_INFO *s);
@@ -135,7 +150,11 @@ void _ut_internal_print_summary(void);
 
 int _ut_internal_same_sign(long long a, long long b);
 int _ut_internal_check_condition(int condition, const char *condition_string, const char *filename, int linenr, int fatal);
-int _ut_internal_cmp_int(int a, int b, int relation, const char *relation_string, const char *filename, int linenr, int fatal);
+
+// CMPS
+int _ut_internal_cmp_int(intmax_t a, intmax_t b);
+int _ut_internal_cmp_uint(uintmax_t a, uintmax_t b);
+int _ut_internal_report_fail_cmp(const char *filename, int linenr, int fatal, const char *fmt, ...);
 
 #define RUN_ALL_TESTS()           \
   do {                            \
@@ -291,18 +310,30 @@ int _ut_internal_check_condition(int condition, const char *condition_string, co
   return 1;
 }
 
-int _ut_internal_report_fail_cmp_ints(intmax_t actual, intmax_t expected,
-                                      const char *actual_str, const char *expected_str, const char *relation_string,
-                                      const char *filename, int linenr, int fatal) {
+int _ut_internal_report_fail_cmp(const char *filename, int linenr, int fatal, const char *fmt, ...) {
   if (_ut_global_runner.current_test && _ut_global_runner.current_test->assertions_failed == 0)
     printf(BOLD_RED "[FAIL] " RESET "%s\n", _ut_global_runner.current_test->name);
 
   const char *color = fatal ? RED : YELLOW;
   const char *tag = fatal ? "[ASSERT]" : "[EXPECT]";
-  printf("%s       " RESET "↳ %s%s " RESET "%s:%d | Expected " BOLD_MAGENTA "%s " RESET "(" BOLD_MAGENTA "%jd" RESET ") " RESET "to be %s " BOLD_CYAN "%s " RESET "(" BOLD_CYAN "%jd" RESET ")\n", color, color, tag, filename, linenr,
-         actual_str, actual, relation_string, expected_str, expected);
+  printf("%s       " RESET "↳ %s%s " RESET "%s:%d | ", color, color, tag, filename, linenr);
 
+  va_list vargs;
+  va_start(vargs, fmt);
+  vprintf(fmt, vargs);
+  va_end(vargs);
+
+  printf("\n");
   _ut_global_runner.current_test->assertions_failed++;
+
   return 0;
+}
+
+int _ut_internal_cmp_int(intmax_t a, intmax_t b) {
+  return (a > b) - (a < b);
+}
+
+int _ut_internal_cmp_uint(uintmax_t a, uintmax_t b) {
+  return (a > b) - (a < b);
 }
 #endif // UNIT_TEST_IMPLEMENTATION
