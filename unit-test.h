@@ -585,7 +585,8 @@ const char *_ut_internal_signame(int sig) {
     _UT_SIGCASE(SIGKILL)
     _UT_SIGCASE(SIGSEGV)
     _UT_SIGCASE(SIGPIPE)
-    _UT_SIGCASE(SIGALRM)
+  case SIGALRM:
+    return "SIGALRM (timed out)";
     _UT_SIGCASE(SIGTERM)
     _UT_SIGCASE(SIGUSR1)
     _UT_SIGCASE(SIGUSR2)
