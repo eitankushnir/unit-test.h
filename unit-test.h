@@ -2,12 +2,8 @@
 #define TERMINAL_COLORS_H_
 
 // --- Utility ---
-#include <stdarg.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
 
+#include <stdlib.h>
 #define RESET "\x1B[0m"
 
 // --- Regular ---
@@ -45,6 +41,8 @@
 #ifndef UNIT_TEST_H_
 #define UNIT_TEST_H_
 
+#include <stdint.h>
+
 // GLOBAL STATE
 
 typedef void (*_UT_INTERNAL_RUNNABLE)(void);
@@ -57,6 +55,10 @@ typedef struct TEST_INFO {
 
   _UT_INTERNAL_RUNNABLE setup;
   _UT_INTERNAL_RUNNABLE teardown;
+
+  int exit_code;
+  int signal;
+  int timeout;
 
   struct TEST_INFO *next;
 } TEST_INFO;
@@ -101,11 +103,11 @@ RUNNER_INFO _ut_global_runner = {0};
       return;                                                                          \
   } while (0)
 
-#define _UT_RUN_OP(type, fmt, cmp, actual, expected, op, rel, fatal)                                                \
+#define _UT_RUN_OP(type, fmt, cmp, actual, expected, op, rel, fatal, ...)                                           \
   do {                                                                                                              \
     type a = (actual);                                                                                              \
     type b = (expected);                                                                                            \
-    int res = cmp(a, b);                                                                                            \
+    int res = cmp(a, b, ##__VA_ARGS__);                                                                             \
     if (!(res op 0)) {                                                                                              \
       _ut_internal_report_fail_cmp(__FILE__, __LINE__, fatal,                                                       \
                                    "Expected " BOLD_MAGENTA #actual " " RESET "(" BOLD_MAGENTA fmt RESET ") " RESET \
@@ -117,8 +119,8 @@ RUNNER_INFO _ut_global_runner = {0};
       _ut_global_runner.current_test->assertions_passed++;                                                          \
     }                                                                                                               \
   } while (0)
-#define _UT_ASSERT_OP(type, fmt, cmp, actual, expected, op, rel) _UT_RUN_OP(type, fmt, cmp, actual, expected, op, rel, 1)
-#define _UT_EXPECT_OP(type, fmt, cmp, actual, expected, op, rel) _UT_RUN_OP(type, fmt, cmp, actual, expected, op, rel, 0)
+#define _UT_ASSERT_OP(type, fmt, cmp, actual, expected, op, rel, ...) _UT_RUN_OP(type, fmt, cmp, actual, expected, op, rel, 1, ##__VA_ARGS__)
+#define _UT_EXPECT_OP(type, fmt, cmp, actual, expected, op, rel, ...) _UT_RUN_OP(type, fmt, cmp, actual, expected, op, rel, 0, ##__VA_ARGS__)
 
 #define ASSERT_INT_EQ(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, ==, equal to)
 #define ASSERT_INT_NE(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, !=, not equal to)
@@ -161,6 +163,48 @@ RUNNER_INFO _ut_global_runner = {0};
 #define EXPECT_STR_EQ(actual, expected) _UT_EXPECT_OP(const char *, "%s", _ut_internal_cmp_str, actual, expected, ==, equal to)
 #define EXPECT_STR_NE(actual, expected) _UT_EXPECT_OP(const char *, "%s", _ut_internal_cmp_str, actual, expected, !=, not equal to)
 
+#define EXPECT_FLT_EQ_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, ==, equal to, epsilon)
+#define EXPECT_FLT_NE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, !=, not equal to, epsilon)
+#define EXPECT_FLT_GT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, >, greater than, epsilon)
+#define EXPECT_FLT_LT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, <, lower than, epsilon)
+#define EXPECT_FLT_GE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, >=, greater or equal to, epsilon)
+#define EXPECT_FLT_LE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, <=, lower or equal to, epsilon)
+
+#define EXPECT_DBL_EQ_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, ==, equal to, epsilon)
+#define EXPECT_DBL_NE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, !=, not equal to, epsilon)
+#define EXPECT_DBL_GT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, >, greater than, epsilon)
+#define EXPECT_DBL_LT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, <, lower than, epsilon)
+#define EXPECT_DBL_GE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, >=, greater or equal to, epsilon)
+#define EXPECT_DBL_LE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, <=, lower or equal to, epsilon)
+
+#define EXPECT_LDBL_EQ_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, ==, equal to, epsilon)
+#define EXPECT_LDBL_NE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, !=, not equal to, epsilon)
+#define EXPECT_LDBL_GT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, >, greater than, epsilon)
+#define EXPECT_LDBL_LT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, <, lower than, epsilon)
+#define EXPECT_LDBL_GE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, >=, greater or equal to, epsilon)
+#define EXPECT_LDBL_LE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, <=, lower or equal to, epsilon)
+
+#define EXPECT_FLT_EQ(actual, expected) EXPECT_FLT_EQ_EPSILON(actual, expected, _UT_FLT_EPSILON)
+#define EXPECT_FLT_NE(actual, expected) EXPECT_FLT_NE_EPSILON(actual, expected, _UT_FLT_EPSILON)
+#define EXPECT_FLT_GT(actual, expected) EXPECT_FLT_GT_EPSILON(actual, expected, _UT_FLT_EPSILON)
+#define EXPECT_FLT_LT(actual, expected) EXPECT_FLT_LT_EPSILON(actual, expected, _UT_FLT_EPSILON)
+#define EXPECT_FLT_GE(actual, expected) EXPECT_FLT_GE_EPSILON(actual, expected, _UT_FLT_EPSILON)
+#define EXPECT_FLT_LE(actual, expected) EXPECT_FLT_LE_EPSILON(actual, expected, _UT_FLT_EPSILON)
+
+#define EXPECT_DBL_EQ(actual, expected) EXPECT_DBL_EQ_EPSILON(actual, expected, _UT_DBL_EPSILON)
+#define EXPECT_DBL_NE(actual, expected) EXPECT_DBL_NE_EPSILON(actual, expected, _UT_DBL_EPSILON)
+#define EXPECT_DBL_GT(actual, expected) EXPECT_DBL_GT_EPSILON(actual, expected, _UT_DBL_EPSILON)
+#define EXPECT_DBL_LT(actual, expected) EXPECT_DBL_LT_EPSILON(actual, expected, _UT_DBL_EPSILON)
+#define EXPECT_DBL_GE(actual, expected) EXPECT_DBL_GE_EPSILON(actual, expected, _UT_DBL_EPSILON)
+#define EXPECT_DBL_LE(actual, expected) EXPECT_DBL_LE_EPSILON(actual, expected, _UT_DBL_EPSILON)
+
+#define EXPECT_LDBL_EQ(actual, expected) EXPECT_LDBL_EQ_EPSILON(actual, expected, _UT_LDBL_EPSILON)
+#define EXPECT_LDBL_NE(actual, expected) EXPECT_LDBL_NE_EPSILON(actual, expected, _UT_LDBL_EPSILON)
+#define EXPECT_LDBL_GT(actual, expected) EXPECT_LDBL_GT_EPSILON(actual, expected, _UT_LDBL_EPSILON)
+#define EXPECT_LDBL_LT(actual, expected) EXPECT_LDBL_LT_EPSILON(actual, expected, _UT_LDBL_EPSILON)
+#define EXPECT_LDBL_GE(actual, expected) EXPECT_LDBL_GE_EPSILON(actual, expected, _UT_LDBL_EPSILON)
+#define EXPECT_LDBL_LE(actual, expected) EXPECT_LDBL_LE_EPSILON(actual, expected, _UT_LDBL_EPSILON)
+
 void _ut_internal_init_suite(SUITE_INFO *s, const char *name);
 void _ut_internal_register_suite(SUITE_INFO *s);
 void _ut_internal_register_test(SUITE_INFO *s, TEST_INFO *t);
@@ -170,14 +214,57 @@ void _ut_internal_run_suite(SUITE_INFO *suite);
 void _ut_internal_run_all(void);
 void _ut_internal_print_summary(void);
 
-int _ut_internal_same_sign(long long a, long long b);
 int _ut_internal_check_condition(int condition, const char *condition_string, const char *filename, int linenr, int fatal);
+
+// UTILITY
+#define _UT_FLT_EPSILON 10e-5
+#define _UT_DBL_EPSILON 10e-9
+#define _UT_LDBL_EPSILON 10e-12L
+static inline float _ut_internal_fabs(float a) {
+  return a < 0 ? -a : a;
+}
+static inline double _ut_internal_dabs(double a) {
+  return a < 0 ? -a : a;
+}
+static inline long double _ut_internal_ldabs(long double a) {
+  return a < 0 ? -a : a;
+}
+
+const char *_ut_internal_signame(int sig);
+void _ut_internal_handle_timeout(int sig);
+
+#if defined(__clang__)
+#define _UT_IGNORE_OVERRIDE_START  \
+  _Pragma("clang diagnostic push") \
+      _Pragma("clang diagnostic ignored \"-Winitializer-overrides\"")
+#define _UT_IGNORE_OVERRIDE_STOP \
+  _Pragma("clang diagnostic pop")
+
+// 2. Detect standard GCC
+#elif defined(__GNUC__)
+#define _UT_IGNORE_OVERRIDE_START \
+  _Pragma("GCC diagnostic push")  \
+      _Pragma("GCC diagnostic ignored \"-Woverride-init\"")
+#define _UT_IGNORE_OVERRIDE_STOP \
+  _Pragma("GCC diagnostic pop")
+
+// 3. Safe fallback for other compilers (MSVC, etc.)
+#else
+#define _UT_IGNORE_OVERRIDE_START
+#define _UT_IGNORE_OVERRIDE_STOP
+#endif
 
 // CMPS
 int _ut_internal_cmp_int(intmax_t a, intmax_t b);
 int _ut_internal_cmp_uint(uintmax_t a, uintmax_t b);
 int _ut_internal_cmp_str(const char *a, const char *b);
+
+int _ut_internal_cmp_flt(float a, float b, float epsilon);
+int _ut_internal_cmp_dbl(double a, double b, double epsilon);
+int _ut_internal_cmp_ldbl(long double a, long double b, long double epsilon);
 int _ut_internal_report_fail_cmp(const char *filename, int linenr, int fatal, const char *fmt, ...);
+
+#define _UT_DEFAULT_TIMEOUT 5
 
 #define RUN_ALL_TESTS()           \
   do {                            \
@@ -208,9 +295,11 @@ int _ut_internal_report_fail_cmp(const char *filename, int linenr, int fatal, co
   void test_##s_name##_##t_name##_body(void);                                   \
   void test_##s_name##_##t_name##_register(void) __attribute__((constructor));  \
   SUITE_INFO suite_##s_name;                                                    \
+  _UT_IGNORE_OVERRIDE_START                                                     \
   TEST_INFO test_##s_name##_##t_name = (TEST_INFO){                             \
       .name = #t_name,                                                          \
       .test_fn = test_##s_name##_##t_name##_fn,                                 \
+      .timeout = _UT_DEFAULT_TIMEOUT,                                           \
       __VA_ARGS__};                                                             \
   void test_##s_name##_##t_name##_fn(void) {                                    \
     if (suite_##s_name.setup)                                                   \
@@ -239,6 +328,17 @@ int _ut_internal_report_fail_cmp(const char *filename, int linenr, int fatal, co
 
 #ifndef UNIT_TEST_IMPLEMENTATION
 
+#include <errno.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
 void _ut_internal_init_suite(SUITE_INFO *s, const char *name) {
   *s = (SUITE_INFO){.name = name};
 }
@@ -265,12 +365,77 @@ void _ut_internal_register_test(SUITE_INFO *s, TEST_INFO *t) {
 
 void _ut_internal_run_test(TEST_INFO *test) {
   _ut_global_runner.current_test = test;
-  test->test_fn();
-  if (test->assertions_failed > 0) {
-    _ut_global_runner.tests_failed++;
+  int fd[2];
+  if (pipe(fd) < 0) {
+    printf(BOLD_YELLOW "[PIPE] " RESET "Failed to create pipe for test %s in suite %s: %s\n", test->name, _ut_global_runner.current_suite->name, strerror(errno));
+  }
+  pid_t pid = fork();
+  if (pid < 0) {
+    printf(BOLD_YELLOW "[FORK] " RESET "Failed to create fork for test %s in suite %s: %s\n", test->name, _ut_global_runner.current_suite->name, strerror(errno));
+    return;
+  }
+  if (pid == 0) {
+    close(fd[0]);
+    if (test->timeout)
+      alarm(test->timeout);
+    test->test_fn();
+    write(fd[1], &test->assertions_failed, sizeof(int));
+    close(fd[1]);
+    exit(0);
   } else {
-    printf(BOLD_GREEN "[PASS] " RESET "%s\n", test->name);
-    _ut_global_runner.tests_passed++;
+    close(fd[1]);
+    int status;
+    waitpid(pid, &status, 0);
+    int assertions_failed;
+    int read_count = read(fd[0], &assertions_failed, sizeof(int));
+    close(fd[0]);
+    if (read_count <= 0) {
+      if (WIFSIGNALED(status)) {
+        if (WTERMSIG(status) == test->signal) {
+          printf(BOLD_GREEN "[PASS] " RESET "%s\n", test->name);
+          _ut_global_runner.tests_passed++;
+        } else if (test->signal) {
+          printf(BOLD_RED "[FAIL] " RESET "%s\n", test->name);
+          printf("       ↳ " RED "[KILLED] " RESET "Expected %s but received %s\n", _ut_internal_signame(test->signal), _ut_internal_signame(WTERMSIG(status)));
+        } else {
+          printf(BOLD_RED "[TERM] " RESET "%s\n", test->name);
+          printf("       ↳ " RED "[KILLED] " RESET "Unexpected termination using %s\n", _ut_internal_signame(WTERMSIG(status)));
+        }
+      } else if (WIFEXITED(status)) {
+        if (WEXITSTATUS(status) == test->exit_code) {
+          printf(BOLD_GREEN "[PASS] " RESET "%s\n", test->name);
+          _ut_global_runner.tests_passed++;
+        } else if (test->exit_code) {
+          printf(BOLD_RED "[FAIL] " RESET "%s\n", test->name);
+          printf("       ↳ " RED "[EXITED] " RESET "Expected exit code %d but got %d\n", test->exit_code, WEXITSTATUS(status));
+        } else {
+          printf(BOLD_RED "[EXIT] " RESET "%s\n", test->name);
+          printf("       ↳ " RED "[EXITED] " RESET "Early exit using code %d \n", WEXITSTATUS(status));
+        }
+      } else {
+        printf(BOLD_RED "[????] " RESET "%s was killed for an unknown reason\n", test->name);
+      }
+    } else if (assertions_failed > 0) {
+      _ut_global_runner.tests_failed++;
+      if (test->signal)
+        printf("       ↳ " YELLOW "[EXPECT] " RESET "Expected signal %s but got none\n", _ut_internal_signame(test->signal));
+      if (test->exit_code)
+        printf("       ↳ " YELLOW "[EXPECT] " RESET "Expected exit code %d but got 0\n", test->exit_code);
+    } else {
+      if (test->signal) {
+        printf(BOLD_RED "[FAIL] " RESET "%s\n", test->name);
+        printf("       ↳ " YELLOW "[EXPECT] " RESET "Expected signal %s but got none\n", _ut_internal_signame(test->signal));
+        _ut_global_runner.tests_failed++;
+      }
+      if (test->exit_code) {
+        printf(BOLD_RED "[FAIL] " RESET "%s\n", test->name);
+        printf("       ↳ " YELLOW "[EXPECT] " RESET "Expected exit code %d but got 0\n", test->exit_code);
+        _ut_global_runner.tests_failed++;
+      } else {
+        printf(BOLD_GREEN "[PASS] " RESET "%s\n", test->name);
+        _ut_global_runner.tests_passed++;
+      }
+    }
   }
 }
 
@@ -371,5 +536,64 @@ int _ut_internal_cmp_str(const char *a, const char *b) {
     return 1;
 
   return strcmp(a, b);
+}
+
+int _ut_internal_cmp_flt(float a, float b, float epsilon) {
+  if (a == b)
+    return 0;
+
+  if (_ut_internal_fabs(a - b) < epsilon) {
+    return 0;
+  }
+
+  return (a > b) - (a < b);
+}
+
+int _ut_internal_cmp_dbl(double a, double b, double epsilon) {
+  if (a == b)
+    return 0;
+
+  if (_ut_internal_dabs(a - b) < epsilon) {
+    return 0;
+  }
+
+  return (a > b) - (a < b);
+}
+int _ut_internal_cmp_ldbl(long double a, long double b, long double epsilon) {
+  if (a == b)
+    return 0;
+
+  if (_ut_internal_ldabs(a - b) < epsilon) {
+    return 0;
+  }
+
+  return (a > b) - (a < b);
+}
+
+#define _UT_SIGCASE(sig) \
+  case sig:              \
+    return #sig;
+
+const char *_ut_internal_signame(int sig) {
+  switch (sig) {
+    _UT_SIGCASE(SIGHUP)
+    _UT_SIGCASE(SIGINT)
+    _UT_SIGCASE(SIGQUIT)
+    _UT_SIGCASE(SIGILL)
+    _UT_SIGCASE(SIGABRT)
+    _UT_SIGCASE(SIGFPE)
+    _UT_SIGCASE(SIGKILL)
+    _UT_SIGCASE(SIGSEGV)
+    _UT_SIGCASE(SIGPIPE)
+    _UT_SIGCASE(SIGALRM)
+    _UT_SIGCASE(SIGTERM)
+    _UT_SIGCASE(SIGUSR1)
+    _UT_SIGCASE(SIGUSR2)
+    _UT_SIGCASE(SIGSTOP)
+    _UT_SIGCASE(SIGBUS)
+    _UT_SIGCASE(SIGTRAP)
+  default:
+    return "UNKNOWN SIGNAL";
+  }
 }
 #endif // UNIT_TEST_IMPLEMENTATION
