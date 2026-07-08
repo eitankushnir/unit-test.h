@@ -3,7 +3,6 @@
 
 // --- Utility ---
 
-#include <stdlib.h>
 #define RESET "\x1B[0m"
 
 // --- Regular ---
@@ -41,6 +40,7 @@
 #ifndef UNIT_TEST_H_
 #define UNIT_TEST_H_
 
+#include <stddef.h>
 #include <stdint.h>
 
 // GLOBAL STATE
@@ -417,6 +417,7 @@ int _ut_internal_report_fail_cmp(const char *filename, int linenr, int fatal, co
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/types.h>
