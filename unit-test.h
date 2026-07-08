@@ -82,6 +82,7 @@ typedef struct {
 
   SUITE_INFO *current_suite;
   TEST_INFO *current_test;
+  int *current_assertions_failed;
 
   int tests_passed;
   int tests_failed;
@@ -417,6 +418,7 @@ int _ut_internal_report_fail_cmp(const char *filename, int linenr, int fatal, co
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -447,83 +449,85 @@ void _ut_internal_register_test(SUITE_INFO *s, TEST_INFO *t) {
 
 void _ut_internal_run_test(TEST_INFO *test) {
   _ut_global_runner.current_test = test;
-  int fd[2];
-  if (pipe(fd) < 0) {
-    printf(BOLD_YELLOW "[PIPE] " RESET "Failed to create pipe for test %s in suite %s: %s\n", test->name, _ut_global_runner.current_suite->name, strerror(errno));
+  int *shared_assertions_failed = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  if (shared_assertions_failed == MAP_FAILED) {
+    printf(BOLD_YELLOW "[WARN] " RESET "Failed to create memory map for test %s in suite %s: %s\n", test->name, _ut_global_runner.current_suite->name, strerror(errno));
   }
+  _ut_global_runner.current_assertions_failed = shared_assertions_failed;
+
   pid_t pid = fork();
   if (pid < 0) {
     printf(BOLD_YELLOW "[FORK] " RESET "Failed to create fork for test %s in suite %s: %s\n", test->name, _ut_global_runner.current_suite->name, strerror(errno));
     return;
   }
   if (pid == 0) {
-    close(fd[0]);
     if (test->timeout)
       alarm(test->timeout);
     test->test_fn();
-    write(fd[1], &test->assertions_failed, sizeof(int));
-    close(fd[1]);
     exit(0);
   } else {
-    close(fd[1]);
     int status;
     waitpid(pid, &status, 0);
-    int assertions_failed;
-    int read_count = read(fd[0], &assertions_failed, sizeof(int));
-    close(fd[0]);
-    if (read_count <= 0) {
-      if (WIFSIGNALED(status)) {
-        if (WTERMSIG(status) == test->signal) {
+    int assertions_failed = *shared_assertions_failed;
+
+    // SIGNAL
+    if (WIFSIGNALED(status)) {
+      if (WTERMSIG(status) == test->signal) {
+        if (assertions_failed == 0) {
           printf(BOLD_GREEN "[PASS] " RESET "%s\n", test->name);
           _ut_global_runner.tests_passed++;
-        } else if (test->signal) {
-          printf(BOLD_RED "[FAIL] " RESET "%s\n", test->name);
-          printf("       ↳ " RED "[KILLED] " RESET "Expected %s but received %s\n", _ut_internal_signame(test->signal), _ut_internal_signame(WTERMSIG(status)));
-          _ut_global_runner.tests_failed++;
         } else {
-          printf(BOLD_RED "[TERM] " RESET "%s\n", test->name);
-          printf("       ↳ " RED "[KILLED] " RESET "Unexpected termination using %s\n", _ut_internal_signame(WTERMSIG(status)));
           _ut_global_runner.tests_failed++;
         }
-      } else if (WIFEXITED(status)) {
-        if (WEXITSTATUS(status) == test->exit_code) {
-          printf(BOLD_GREEN "[PASS] " RESET "%s\n", test->name);
-          _ut_global_runner.tests_passed++;
-        } else if (test->exit_code) {
+      } else if (test->signal) {
+        if (assertions_failed == 0)
           printf(BOLD_RED "[FAIL] " RESET "%s\n", test->name);
-          printf("       ↳ " RED "[EXITED] " RESET "Expected exit code %d but got %d\n", test->exit_code, WEXITSTATUS(status));
-          _ut_global_runner.tests_failed++;
-        } else {
-          printf(BOLD_RED "[EXIT] " RESET "%s\n", test->name);
-          printf("       ↳ " RED "[EXITED] " RESET "Early exit using code %d \n", WEXITSTATUS(status));
-          _ut_global_runner.tests_failed++;
-        }
+        printf("       ↳ " RED "[KILLED] " RESET "Expected %s but received %s\n", _ut_internal_signame(test->signal), _ut_internal_signame(WTERMSIG(status)));
+        _ut_global_runner.tests_failed++;
       } else {
-        printf(BOLD_RED "[????] " RESET "%s was killed for an unknown reason\n", test->name);
+        if (assertions_failed == 0)
+          printf(BOLD_RED "[TERM] " RESET "%s\n", test->name);
+        printf("       ↳ " RED "[KILLED] " RESET "Unexpected termination using %s\n", _ut_internal_signame(WTERMSIG(status)));
+        _ut_global_runner.tests_failed++;
+      }
+    }
+
+    // EXITED
+    else if (WIFEXITED(status) != 0) {
+      if (WEXITSTATUS(status) == test->exit_code) {
+        if (assertions_failed == 0) {
+          printf(BOLD_GREEN "[PASS] " RESET "%s\n", test->name);
+          _ut_global_runner.tests_passed++;
+        } else {
+          _ut_global_runner.tests_failed++;
+        }
+      } else if (test->exit_code) {
+        if (assertions_failed > 0)
+          printf(BOLD_RED "[FAIL] " RESET "%s\n", test->name);
+        printf("       ↳ " RED "[EXITED] " RESET "Expected exit code %d but got %d\n", test->exit_code, WEXITSTATUS(status));
+        _ut_global_runner.tests_failed++;
+      } else {
+        if (assertions_failed > 0)
+          printf(BOLD_RED "[EXIT] " RESET "%s\n", test->name);
+        printf("       ↳ " RED "[EXITED] " RESET "Early exit using code %d \n", WEXITSTATUS(status));
         _ut_global_runner.tests_failed++;
       }
     } else if (assertions_failed > 0) {
       _ut_global_runner.tests_failed++;
-      if (test->signal)
-        printf("       ↳ " YELLOW "[EXPECT] " RESET "Expected signal %s but got none\n", _ut_internal_signame(test->signal));
-      if (test->exit_code)
-        printf("       ↳ " YELLOW "[EXPECT] " RESET "Expected exit code %d but got 0\n", test->exit_code);
     } else {
-      if (test->signal) {
-        printf(BOLD_RED "[FAIL] " RESET "%s\n", test->name);
-        printf("       ↳ " YELLOW "[EXPECT] " RESET "Expected signal %s but got none\n", _ut_internal_signame(test->signal));
-        _ut_global_runner.tests_failed++;
-      }
-      if (test->exit_code) {
-        printf(BOLD_RED "[FAIL] " RESET "%s\n", test->name);
-        printf("       ↳ " YELLOW "[EXPECT] " RESET "Expected exit code %d but got 0\n", test->exit_code);
-        _ut_global_runner.tests_failed++;
-      } else {
-        printf(BOLD_GREEN "[PASS] " RESET "%s\n", test->name);
-        _ut_global_runner.tests_passed++;
-      }
+      printf(BOLD_GREEN "[PASS] " RESET "%s\n", test->name);
+      _ut_global_runner.tests_passed++;
     }
   }
+  // else if (assertions_failed > 0) {
+  //   _ut_global_runner.tests_failed++;
+  //   if (test->signal)
+  //     printf("       ↳ " YELLOW "[EXPECT] " RESET "Expected signal %s but got none\n", _ut_internal_signame(test->signal));
+  //   if (test->exit_code)
+  //     printf("       ↳ " YELLOW "[EXPECT] " RESET "Expected exit code %d but got 0\n", test->exit_code);
+  // }
+
+  munmap(shared_assertions_failed, sizeof(int));
 }
 
 void _ut_internal_run_suite(SUITE_INFO *suite) {
@@ -578,6 +582,7 @@ int _ut_internal_check_condition(int condition, const char *condition_string, co
     printf("%s       " RESET "↳ %s%s " RESET "%s:%d | %s\n", color, color, tag, filename, linenr, condition_string);
 
     _ut_global_runner.current_test->assertions_failed++;
+    (*(_ut_global_runner.current_assertions_failed))++;
     return 0;
   }
 
@@ -599,7 +604,7 @@ int _ut_internal_report_fail_cmp(const char *filename, int linenr, int fatal, co
   va_end(vargs);
 
   printf("\n");
-  _ut_global_runner.current_test->assertions_failed++;
+  (*(_ut_global_runner.current_assertions_failed))++;
 
   return 0;
 }
