@@ -520,13 +520,6 @@ void _ut_internal_run_test(TEST_INFO *test) {
       _ut_global_runner.tests_passed++;
     }
   }
-  // else if (assertions_failed > 0) {
-  //   _ut_global_runner.tests_failed++;
-  //   if (test->signal)
-  //     printf("       ↳ " YELLOW "[EXPECT] " RESET "Expected signal %s but got none\n", _ut_internal_signame(test->signal));
-  //   if (test->exit_code)
-  //     printf("       ↳ " YELLOW "[EXPECT] " RESET "Expected exit code %d but got 0\n", test->exit_code);
-  // }
 
   munmap(shared_assertions_failed, sizeof(int));
 }
