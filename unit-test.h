@@ -181,6 +181,37 @@ RUNNER_INFO _ut_global_runner = {0};
 #define ASSERT_LDBL_GE(actual, expected) ASSERT_LDBL_GE_EPSILON(actual, expected, _UT_LDBL_EPSILON)
 #define ASSERT_LDBL_LE(actual, expected) ASSERT_LDBL_LE_EPSILON(actual, expected, _UT_LDBL_EPSILON)
 
+#define _UT_RUN_MEM_OP(actual, expected, size, op, rel, fatal)                                                       \
+  do {                                                                                                               \
+    const void *a = &(actual);                                                                                       \
+    const void *b = &(expected);                                                                                     \
+    int res = _ut_internal_cmp_mem(a, b, size);                                                                      \
+    if (!(res op 0)) {                                                                                               \
+      char buf_a[2 * (size) + 1];                                                                                    \
+      char buf_b[2 * (size) + 1];                                                                                    \
+      _ut_internal_hex_dump(a, (size), buf_a, sizeof(buf_a));                                                        \
+      _ut_internal_hex_dump(b, (size), buf_b, sizeof(buf_b));                                                        \
+      _ut_internal_report_fail_cmp(__FILE__, __LINE__, fatal,                                                        \
+                                   "Expected " BOLD_MAGENTA #actual " " RESET "(" BOLD_MAGENTA "%s" RESET ") " RESET \
+                                   "to be " #rel " " BOLD_CYAN #expected " " RESET "(" BOLD_CYAN "%s" RESET ")",     \
+                                   buf_a, buf_b);                                                                    \
+      if (fatal)                                                                                                     \
+        return;                                                                                                      \
+    } else {                                                                                                         \
+      _ut_global_runner.current_test->assertions_passed++;                                                           \
+    }                                                                                                                \
+  } while (0)
+
+#define _UT_ASSERT_MEM_OP(actual, expected, size, op, rel) _UT_RUN_MEM_OP(actual, expected, size, op, rel, 1)
+#define _UT_EXPECT_MEM_OP(actual, expected, size, op, rel) _UT_RUN_MEM_OP(actual, expected, size, op, rel, 0)
+
+#define ASSERT_MEM_EQ(actual, expected, size) _UT_ASSERT_MEM_OP(actual, expected, size, ==, equal to)
+#define ASSERT_MEM_NE(actual, expected, size) _UT_ASSERT_MEM_OP(actual, expected, size, !=, not equal to)
+#define ASSERT_MEM_GT(actual, expected, size) _UT_ASSERT_MEM_OP(actual, expected, size, >, greater than)
+#define ASSERT_MEM_LT(actual, expected, size) _UT_ASSERT_MEM_OP(actual, expected, size, <, lower than)
+#define ASSERT_MEM_GE(actual, expected, size) _UT_ASSERT_MEM_OP(actual, expected, size, >=, greater or equal to)
+#define ASSERT_MEM_LE(actual, expected, size) _UT_ASSERT_MEM_OP(actual, expected, size, <=, lower or equal to)
+
 // EXPECTS
 #define EXPECT_TRUE(cond) \
   _ut_internal_check_condition((cond), #cond, __FILE__, __LINE__, 0)
@@ -247,6 +278,13 @@ RUNNER_INFO _ut_global_runner = {0};
 #define EXPECT_LDBL_GE(actual, expected) EXPECT_LDBL_GE_EPSILON(actual, expected, _UT_LDBL_EPSILON)
 #define EXPECT_LDBL_LE(actual, expected) EXPECT_LDBL_LE_EPSILON(actual, expected, _UT_LDBL_EPSILON)
 
+#define EXPECT_MEM_EQ(actual, expected, size) _UT_EXPECT_MEM_OP(actual, expected, size, ==, equal to)
+#define EXPECT_MEM_NE(actual, expected, size) _UT_EXPECT_MEM_OP(actual, expected, size, !=, not equal to)
+#define EXPECT_MEM_GT(actual, expected, size) _UT_EXPECT_MEM_OP(actual, expected, size, >, greater than)
+#define EXPECT_MEM_LT(actual, expected, size) _UT_EXPECT_MEM_OP(actual, expected, size, <, lower than)
+#define EXPECT_MEM_GE(actual, expected, size) _UT_EXPECT_MEM_OP(actual, expected, size, >=, greater or equal to)
+#define EXPECT_MEM_LE(actual, expected, size) _UT_EXPECT_MEM_OP(actual, expected, size, <=, lower or equal to)
+
 void _ut_internal_init_suite(SUITE_INFO *s, const char *name);
 void _ut_internal_register_suite(SUITE_INFO *s);
 void _ut_internal_register_test(SUITE_INFO *s, TEST_INFO *t);
@@ -272,6 +310,7 @@ static inline long double _ut_internal_ldabs(long double a) {
   return a < 0 ? -a : a;
 }
 
+void _ut_internal_hex_dump(const void *loc, size_t bytes, char *buf, size_t bufsize);
 const char *_ut_internal_signame(int sig);
 void _ut_internal_handle_timeout(int sig);
 
@@ -300,6 +339,7 @@ void _ut_internal_handle_timeout(int sig);
 int _ut_internal_cmp_int(intmax_t a, intmax_t b);
 int _ut_internal_cmp_uint(uintmax_t a, uintmax_t b);
 int _ut_internal_cmp_str(const char *a, const char *b);
+int _ut_internal_cmp_mem(const void *a, const void *b, size_t size);
 
 int _ut_internal_cmp_flt(float a, float b, float epsilon);
 int _ut_internal_cmp_dbl(double a, double b, double epsilon);
@@ -585,6 +625,16 @@ int _ut_internal_cmp_str(const char *a, const char *b) {
   return strcmp(a, b);
 }
 
+int _ut_internal_cmp_mem(const void *a, const void *b, size_t size) {
+  if (a == b)
+    return 0;
+  if (a == NULL)
+    return -1;
+  if (b == NULL)
+    return 1;
+
+  return memcmp(a, b, size);
+}
 int _ut_internal_cmp_flt(float a, float b, float epsilon) {
   if (a == b)
     return 0;
@@ -643,5 +693,31 @@ const char *_ut_internal_signame(int sig) {
   default:
     return "UNKNOWN SIGNAL";
   }
+}
+
+void _ut_internal_hex_dump(const void *loc, size_t bytes, char *buf, size_t bufsize) {
+  if (!bufsize || !buf)
+    return;
+
+  if (!loc) {
+    buf[0] = '\0';
+    return;
+  }
+
+  const char hex_chars[] = "0123456789abcdef";
+  const char *ptr = loc;
+  size_t write_idx = 0;
+
+  for (size_t i = 0; i < bytes; i++) {
+    if (write_idx + 2 >= bufsize) {
+      break;
+    }
+
+    unsigned char current_byte = ptr[i];
+    buf[write_idx++] = hex_chars[(current_byte >> 4) & 0x0F];
+    buf[write_idx++] = hex_chars[current_byte & 0x0F];
+  }
+
+  buf[write_idx] = '\0';
 }
 #endif // UNIT_TEST_IMPLEMENTATION
