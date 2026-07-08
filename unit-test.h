@@ -139,6 +139,48 @@ RUNNER_INFO _ut_global_runner = {0};
 #define ASSERT_STR_EQ(actual, expected) _UT_ASSERT_OP(const char *, "%s", _ut_internal_cmp_str, actual, expected, ==, equal to)
 #define ASSERT_STR_NE(actual, expected) _UT_ASSERT_OP(const char *, "%s", _ut_internal_cmp_str, actual, expected, !=, not equal to)
 
+#define ASSERT_FLT_EQ_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, ==, equal to, epsilon)
+#define ASSERT_FLT_NE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, !=, not equal to, epsilon)
+#define ASSERT_FLT_GT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, >, greater than, epsilon)
+#define ASSERT_FLT_LT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, <, lower than, epsilon)
+#define ASSERT_FLT_GE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, >=, greater or equal to, epsilon)
+#define ASSERT_FLT_LE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, <=, lower or equal to, epsilon)
+
+#define ASSERT_DBL_EQ_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, ==, equal to, epsilon)
+#define ASSERT_DBL_NE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, !=, not equal to, epsilon)
+#define ASSERT_DBL_GT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, >, greater than, epsilon)
+#define ASSERT_DBL_LT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, <, lower than, epsilon)
+#define ASSERT_DBL_GE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, >=, greater or equal to, epsilon)
+#define ASSERT_DBL_LE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, <=, lower or equal to, epsilon)
+
+#define ASSERT_LDBL_EQ_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, ==, equal to, epsilon)
+#define ASSERT_LDBL_NE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, !=, not equal to, epsilon)
+#define ASSERT_LDBL_GT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, >, greater than, epsilon)
+#define ASSERT_LDBL_LT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, <, lower than, epsilon)
+#define ASSERT_LDBL_GE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, >=, greater or equal to, epsilon)
+#define ASSERT_LDBL_LE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, <=, lower or equal to, epsilon)
+
+#define ASSERT_FLT_EQ(actual, expected) ASSERT_FLT_EQ_EPSILON(actual, expected, _UT_FLT_EPSILON)
+#define ASSERT_FLT_NE(actual, expected) ASSERT_FLT_NE_EPSILON(actual, expected, _UT_FLT_EPSILON)
+#define ASSERT_FLT_GT(actual, expected) ASSERT_FLT_GT_EPSILON(actual, expected, _UT_FLT_EPSILON)
+#define ASSERT_FLT_LT(actual, expected) ASSERT_FLT_LT_EPSILON(actual, expected, _UT_FLT_EPSILON)
+#define ASSERT_FLT_GE(actual, expected) ASSERT_FLT_GE_EPSILON(actual, expected, _UT_FLT_EPSILON)
+#define ASSERT_FLT_LE(actual, expected) ASSERT_FLT_LE_EPSILON(actual, expected, _UT_FLT_EPSILON)
+
+#define ASSERT_DBL_EQ(actual, expected) ASSERT_DBL_EQ_EPSILON(actual, expected, _UT_DBL_EPSILON)
+#define ASSERT_DBL_NE(actual, expected) ASSERT_DBL_NE_EPSILON(actual, expected, _UT_DBL_EPSILON)
+#define ASSERT_DBL_GT(actual, expected) ASSERT_DBL_GT_EPSILON(actual, expected, _UT_DBL_EPSILON)
+#define ASSERT_DBL_LT(actual, expected) ASSERT_DBL_LT_EPSILON(actual, expected, _UT_DBL_EPSILON)
+#define ASSERT_DBL_GE(actual, expected) ASSERT_DBL_GE_EPSILON(actual, expected, _UT_DBL_EPSILON)
+#define ASSERT_DBL_LE(actual, expected) ASSERT_DBL_LE_EPSILON(actual, expected, _UT_DBL_EPSILON)
+
+#define ASSERT_LDBL_EQ(actual, expected) ASSERT_LDBL_EQ_EPSILON(actual, expected, _UT_LDBL_EPSILON)
+#define ASSERT_LDBL_NE(actual, expected) ASSERT_LDBL_NE_EPSILON(actual, expected, _UT_LDBL_EPSILON)
+#define ASSERT_LDBL_GT(actual, expected) ASSERT_LDBL_GT_EPSILON(actual, expected, _UT_LDBL_EPSILON)
+#define ASSERT_LDBL_LT(actual, expected) ASSERT_LDBL_LT_EPSILON(actual, expected, _UT_LDBL_EPSILON)
+#define ASSERT_LDBL_GE(actual, expected) ASSERT_LDBL_GE_EPSILON(actual, expected, _UT_LDBL_EPSILON)
+#define ASSERT_LDBL_LE(actual, expected) ASSERT_LDBL_LE_EPSILON(actual, expected, _UT_LDBL_EPSILON)
+
 // EXPECTS
 #define EXPECT_TRUE(cond) \
   _ut_internal_check_condition((cond), #cond, __FILE__, __LINE__, 0)
