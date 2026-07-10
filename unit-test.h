@@ -535,10 +535,12 @@ void _ut_internal_run_test(TEST_INFO *test) {
         printf("       ↳ " RED "[KILLED] " RESET "Unexpected termination using " BOLD_CYAN "%s\n" RESET, _ut_internal_signame(WTERMSIG(status)));
         _ut_global_runner.tests_failed++;
       }
+
+      printf("\n");
     }
 
     // EXITED
-    else if (WIFEXITED(status) != 0) {
+    else if (WIFEXITED(status) && WEXITSTATUS(status)) {
       if (WEXITSTATUS(status) == test->exit_code) {
         if (assertions_failed == 0) {
           printf(BOLD_GREEN "[PASS] " RESET "%s\n", test->name);
@@ -557,8 +559,10 @@ void _ut_internal_run_test(TEST_INFO *test) {
         printf("       ↳ " RED "[EXITED] " RESET "Early exit using exit code " BOLD_CYAN "%d\n" RESET, WEXITSTATUS(status));
         _ut_global_runner.tests_failed++;
       }
+      printf("\n");
     } else if (assertions_failed > 0) {
       _ut_global_runner.tests_failed++;
+      printf("\n");
     } else {
       printf(BOLD_GREEN "[PASS] " RESET "%s\n", test->name);
       _ut_global_runner.tests_passed++;
