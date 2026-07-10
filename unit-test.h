@@ -322,6 +322,13 @@ RUNNER_INFO _ut_global_runner = {0};
 #define EXPECT_MEM_GE(actual, expected, size) _UT_EXPECT_MEM_OP(actual, expected, size, >=, greater or equal to)
 #define EXPECT_MEM_LE(actual, expected, size) _UT_EXPECT_MEM_OP(actual, expected, size, <=, lower or equal to)
 
+#define EXPECT_CUSTOM_EQ(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, expected, ==, equal to, ##__VA_ARGS__)
+#define EXPECT_CUSTOM_NE(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, expected, !=, not equal to, ##__VA_ARGS__)
+#define EXPECT_CUSTOM_GT(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, expected, >, greater than, ##__VA_ARGS__)
+#define EXPECT_CUSTOM_LT(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, expected, <, lower than, ##__VA_ARGS__)
+#define EXPECT_CUSTOM_GE(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, expected, >=, greater or equal to, ##__VA_ARGS__)
+#define EXPECT_CUSTOM_LE(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, expected, <=, lower or equal to, ##__VA_ARGS__)
+
 void _ut_internal_init_suite(SUITE_INFO *s, const char *name);
 void _ut_internal_register_suite(SUITE_INFO *s);
 void _ut_internal_register_test(SUITE_INFO *s, TEST_INFO *t);
