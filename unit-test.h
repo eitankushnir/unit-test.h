@@ -526,12 +526,12 @@ void _ut_internal_run_test(TEST_INFO *test) {
       } else if (test->signal) {
         if (assertions_failed == 0)
           printf(BOLD_RED "[FAIL] " RESET "%s\n", test->name);
-        printf("       ↳ " RED "[KILLED] " RESET "Expected %s but received %s\n", _ut_internal_signame(test->signal), _ut_internal_signame(WTERMSIG(status)));
+        printf("       ↳ " RED "[KILLED] " RESET "Expected " BOLD_MAGENTA "%s" RESET " but received " BOLD_CYAN "%s\n" RESET, _ut_internal_signame(test->signal), _ut_internal_signame(WTERMSIG(status)));
         _ut_global_runner.tests_failed++;
       } else {
         if (assertions_failed == 0)
           printf(BOLD_RED "[TERM] " RESET "%s\n", test->name);
-        printf("       ↳ " RED "[KILLED] " RESET "Unexpected termination using %s\n", _ut_internal_signame(WTERMSIG(status)));
+        printf("       ↳ " RED "[KILLED] " RESET "Unexpected termination using " BOLD_CYAN "%s\n" RESET, _ut_internal_signame(WTERMSIG(status)));
         _ut_global_runner.tests_failed++;
       }
     }
@@ -546,14 +546,14 @@ void _ut_internal_run_test(TEST_INFO *test) {
           _ut_global_runner.tests_failed++;
         }
       } else if (test->exit_code) {
-        if (assertions_failed > 0)
+        if (assertions_failed == 0)
           printf(BOLD_RED "[FAIL] " RESET "%s\n", test->name);
-        printf("       ↳ " RED "[EXITED] " RESET "Expected exit code %d but got %d\n", test->exit_code, WEXITSTATUS(status));
+        printf("       ↳ " RED "[EXITED] " RESET "Expected exit code " BOLD_MAGENTA "%d" RESET " but got " BOLD_CYAN "%d\n" RESET, test->exit_code, WEXITSTATUS(status));
         _ut_global_runner.tests_failed++;
       } else {
-        if (assertions_failed > 0)
+        if (assertions_failed == 0)
           printf(BOLD_RED "[EXIT] " RESET "%s\n", test->name);
-        printf("       ↳ " RED "[EXITED] " RESET "Early exit using code %d \n", WEXITSTATUS(status));
+        printf("       ↳ " RED "[EXITED] " RESET "Early exit using exit code " BOLD_CYAN "%d\n" RESET, WEXITSTATUS(status));
         _ut_global_runner.tests_failed++;
       }
     } else if (assertions_failed > 0) {
