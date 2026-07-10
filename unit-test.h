@@ -106,14 +106,14 @@ RUNNER_INFO _ut_global_runner = {0};
 
 #define _UT_RUN_OP(type, fmt, cmp, actual, expected, op, rel, fatal, ...)                                           \
   do {                                                                                                              \
-    type a = (actual);                                                                                              \
-    type b = (expected);                                                                                            \
-    int res = cmp(a, b, ##__VA_ARGS__);                                                                             \
+    type _ut_a_ = (actual);                                                                                         \
+    type _ut_b_ = (expected);                                                                                       \
+    int res = cmp(_ut_a_, _ut_b_, ##__VA_ARGS__);                                                                   \
     if (!(res op 0)) {                                                                                              \
       _ut_internal_report_fail_cmp(__FILE__, __LINE__, fatal,                                                       \
                                    "Expected " BOLD_MAGENTA #actual " " RESET "(" BOLD_MAGENTA fmt RESET ") " RESET \
                                    "to be " #rel " " BOLD_CYAN #expected " " RESET "(" BOLD_CYAN fmt RESET ")",     \
-                                   a, b);                                                                           \
+                                   _ut_a_, _ut_b_);                                                                 \
       if (fatal)                                                                                                    \
         return;                                                                                                     \
     } else {                                                                                                        \
@@ -184,14 +184,14 @@ RUNNER_INFO _ut_global_runner = {0};
 
 #define _UT_RUN_MEM_OP(actual, expected, size, op, rel, fatal)                                                       \
   do {                                                                                                               \
-    const void *a = &(actual);                                                                                       \
-    const void *b = &(expected);                                                                                     \
-    int res = _ut_internal_cmp_mem(a, b, size);                                                                      \
+    const void *_ut_a_ = &(actual);                                                                                  \
+    const void *_ut_b_ = &(expected);                                                                                \
+    int res = _ut_internal_cmp_mem(_ut_a_, _ut_b_, size);                                                            \
     if (!(res op 0)) {                                                                                               \
       char buf_a[2 * (size) + 1];                                                                                    \
       char buf_b[2 * (size) + 1];                                                                                    \
-      _ut_internal_hex_dump(a, (size), buf_a, sizeof(buf_a));                                                        \
-      _ut_internal_hex_dump(b, (size), buf_b, sizeof(buf_b));                                                        \
+      _ut_internal_hex_dump(_ut_a_, (size), buf_a, sizeof(buf_a));                                                   \
+      _ut_internal_hex_dump(_ut_b_, (size), buf_b, sizeof(buf_b));                                                   \
       _ut_internal_report_fail_cmp(__FILE__, __LINE__, fatal,                                                        \
                                    "Expected " BOLD_MAGENTA #actual " " RESET "(" BOLD_MAGENTA "%s" RESET ") " RESET \
                                    "to be " #rel " " BOLD_CYAN #expected " " RESET "(" BOLD_CYAN "%s" RESET ")",     \
@@ -219,10 +219,9 @@ RUNNER_INFO _ut_global_runner = {0};
 
 #define _UT_RUN_CUSTOM_OP(type, cmp, to_str, actual, expected, op, rel, fatal, ...)                                  \
   do {                                                                                                               \
-    type a = (actual);                                                                                               \
-    type b = (expected);                                                                                             \
-    printf("A: %d\n", actual.a);                                                                                     \
-    int res = cmp(&a, &b, ##__VA_ARGS__);                                                                            \
+    type _ut_a_ = (actual);                                                                                          \
+    type _ut_b_ = (expected);                                                                                        \
+    int res = cmp(&_ut_a_, &_ut_b_, ##__VA_ARGS__);                                                                  \
     if (!(res op 0)) {                                                                                               \
       char buf_a[UT_TOSTR_BUFF_SIZE];                                                                                \
       char buf_b[UT_TOSTR_BUFF_SIZE];                                                                                \
