@@ -213,6 +213,43 @@ RUNNER_INFO _ut_global_runner = {0};
 #define ASSERT_MEM_GE(actual, expected, size) _UT_ASSERT_MEM_OP(actual, expected, size, >=, greater or equal to)
 #define ASSERT_MEM_LE(actual, expected, size) _UT_ASSERT_MEM_OP(actual, expected, size, <=, lower or equal to)
 
+#ifndef UT_TOSTR_BUFF_SIZE
+#define UT_TOSTR_BUFF_SIZE 256
+#endif
+
+#define _UT_RUN_CUSTOM_OP(type, cmp, to_str, actual, expected, op, rel, fatal, ...)                                  \
+  do {                                                                                                               \
+    type a = (actual);                                                                                               \
+    type b = (expected);                                                                                             \
+    printf("A: %d\n", actual.a);                                                                                     \
+    int res = cmp(&a, &b, ##__VA_ARGS__);                                                                            \
+    if (!(res op 0)) {                                                                                               \
+      char buf_a[UT_TOSTR_BUFF_SIZE];                                                                                \
+      char buf_b[UT_TOSTR_BUFF_SIZE];                                                                                \
+      to_str(&a, buf_a, UT_TOSTR_BUFF_SIZE);                                                                         \
+      to_str(&b, buf_b, UT_TOSTR_BUFF_SIZE);                                                                         \
+                                                                                                                     \
+      _ut_internal_report_fail_cmp(__FILE__, __LINE__, fatal,                                                        \
+                                   "Expected " BOLD_MAGENTA #actual " " RESET "(" BOLD_MAGENTA "%s" RESET ") " RESET \
+                                   "to be " #rel " " BOLD_CYAN #expected " " RESET "(" BOLD_CYAN "%s" RESET ")",     \
+                                   buf_a, buf_b);                                                                    \
+      if (fatal)                                                                                                     \
+        return;                                                                                                      \
+    } else {                                                                                                         \
+      _ut_global_runner.current_test->assertions_passed++;                                                           \
+    }                                                                                                                \
+  } while (0)
+
+#define _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, expected, op, rel, ...) _UT_RUN_CUSTOM_OP(type, cmp, to_str, actual, expected, op, rel, 1, ##__VA_ARGS__)
+#define _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, expected, op, rel, ...) _UT_RUN_CUSTOM_OP(type, cmp, to_str, actual, expected, op, rel, 0, ##__VA_ARGS__)
+
+#define ASSERT_CUSTOM_EQ(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, expected, ==, equal to, ##__VA_ARGS__)
+#define ASSERT_CUSTOM_NE(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, expected, !=, not equal to, ##__VA_ARGS__)
+#define ASSERT_CUSTOM_GT(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, expected, >, greater than, ##__VA_ARGS__)
+#define ASSERT_CUSTOM_LT(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, expected, <, lower than, ##__VA_ARGS__)
+#define ASSERT_CUSTOM_GE(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, expected, >=, greater or equal to, ##__VA_ARGS__)
+#define ASSERT_CUSTOM_LE(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, expected, <=, lower or equal to, ##__VA_ARGS__)
+
 // EXPECTS
 #define EXPECT_TRUE(cond) \
   _ut_internal_check_condition((cond), #cond, __FILE__, __LINE__, 0)
