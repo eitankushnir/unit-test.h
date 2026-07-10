@@ -452,7 +452,7 @@ int _ut_internal_report_fail_cmp(const char *filename, int linenr, int fatal, co
 
 #endif // UNIT_TEST_H_
 
-#ifndef UNIT_TEST_IMPLEMENTATION
+#ifdef UNIT_TEST_IMPLEMENTATION
 
 #include <errno.h>
 #include <signal.h>
