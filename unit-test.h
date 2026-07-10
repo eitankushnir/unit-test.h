@@ -496,6 +496,7 @@ void _ut_internal_run_test(TEST_INFO *test) {
   int *shared_assertions_failed = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   if (shared_assertions_failed == MAP_FAILED) {
     printf(BOLD_YELLOW "[WARN] " RESET "Failed to create memory map for test %s in suite %s: %s\n", test->name, _ut_global_runner.current_suite->name, strerror(errno));
+    return;
   }
   _ut_global_runner.current_assertions_failed = shared_assertions_failed;
 
