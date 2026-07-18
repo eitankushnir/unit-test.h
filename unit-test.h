@@ -104,150 +104,150 @@ RUNNER_INFO _ut_global_runner = {0};
       return;                                                                          \
   } while (0)
 
-#define _UT_RUN_OP(type, fmt, cmp, actual, expected, op, rel, fatal, ...)                                           \
-  do {                                                                                                              \
-    type _ut_a_ = (actual);                                                                                         \
-    type _ut_b_ = (expected);                                                                                       \
-    int res = cmp(_ut_a_, _ut_b_, ##__VA_ARGS__);                                                                   \
-    if (!(res op 0)) {                                                                                              \
-      _ut_internal_report_fail_cmp(__FILE__, __LINE__, fatal,                                                       \
-                                   "Expected " BOLD_MAGENTA #actual " " RESET "(" BOLD_MAGENTA fmt RESET ") " RESET \
-                                   "to be " #rel " " BOLD_CYAN #expected " " RESET "(" BOLD_CYAN fmt RESET ")",     \
-                                   _ut_a_, _ut_b_);                                                                 \
-      if (fatal)                                                                                                    \
-        return;                                                                                                     \
-    } else {                                                                                                        \
-      _ut_global_runner.current_test->assertions_passed++;                                                          \
-    }                                                                                                               \
+#define _UT_RUN_OP(type, fmt, cmp, actual, actual_str, expected, expected_str, op, rel, fatal, ...)           \
+  do {                                                                                                        \
+    type _ut_a_ = (actual);                                                                                   \
+    type _ut_b_ = (expected);                                                                                 \
+    int res = cmp(_ut_a_, _ut_b_, ##__VA_ARGS__);                                                             \
+    if (!(res op 0)) {                                                                                        \
+      _ut_internal_report_fail_cmp(__FILE__, __LINE__, fatal,                                                 \
+                                   "Expected " BOLD_MAGENTA "%s " RESET "(" BOLD_MAGENTA fmt RESET ") " RESET \
+                                   "to be %s " BOLD_CYAN "%s " RESET "(" BOLD_CYAN fmt RESET ")",             \
+                                   actual_str, _ut_a_, #rel, expected_str, _ut_b_);                           \
+      if (fatal)                                                                                              \
+        return;                                                                                               \
+    } else {                                                                                                  \
+      _ut_global_runner.current_test->assertions_passed++;                                                    \
+    }                                                                                                         \
   } while (0)
-#define _UT_ASSERT_OP(type, fmt, cmp, actual, expected, op, rel, ...) _UT_RUN_OP(type, fmt, cmp, actual, expected, op, rel, 1, ##__VA_ARGS__)
-#define _UT_EXPECT_OP(type, fmt, cmp, actual, expected, op, rel, ...) _UT_RUN_OP(type, fmt, cmp, actual, expected, op, rel, 0, ##__VA_ARGS__)
+#define _UT_ASSERT_OP(type, fmt, cmp, actual, actual_str, expected, expected_str, op, rel, ...) _UT_RUN_OP(type, fmt, cmp, actual, actual_str, expected, expected_str, op, rel, 1, ##__VA_ARGS__)
+#define _UT_EXPECT_OP(type, fmt, cmp, actual, actual_str, expected, expected_str, op, rel, ...) _UT_RUN_OP(type, fmt, cmp, actual, actual_str, expected, expected_str, op, rel, 0, ##__VA_ARGS__)
 
-#define ASSERT_INT_EQ(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, ==, equal to)
-#define ASSERT_INT_NE(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, !=, not equal to)
-#define ASSERT_INT_GT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, >, greater than)
-#define ASSERT_INT_LT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, <, lower than)
-#define ASSERT_INT_GE(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, >=, greater or equal to)
-#define ASSERT_INT_LE(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, <=, lower or equal to)
+#define ASSERT_INT_EQ(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, #actual, expected, #expected, ==, equal to)
+#define ASSERT_INT_NE(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, #actual, expected, #expected, !=, not equal to)
+#define ASSERT_INT_GT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, #actual, expected, #expected, >, greater than)
+#define ASSERT_INT_LT(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, #actual, expected, #expected, <, lower than)
+#define ASSERT_INT_GE(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, #actual, expected, #expected, >=, greater or equal to)
+#define ASSERT_INT_LE(actual, expected) _UT_ASSERT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, #actual, expected, #expected, <=, lower or equal to)
 
-#define ASSERT_UINT_EQ(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, ==, equal to)
-#define ASSERT_UINT_NE(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, !=, not equal to)
-#define ASSERT_UINT_GT(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, >, greater than)
-#define ASSERT_UINT_LT(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, <, lower than)
-#define ASSERT_UINT_GE(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, >=, greater or equal to)
-#define ASSERT_UINT_LE(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, <=, lower or equal to)
+#define ASSERT_UINT_EQ(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, #actual, expected, #expected, ==, equal to)
+#define ASSERT_UINT_NE(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, #actual, expected, #expected, !=, not equal to)
+#define ASSERT_UINT_GT(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, #actual, expected, #expected, >, greater than)
+#define ASSERT_UINT_LT(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, #actual, expected, #expected, <, lower than)
+#define ASSERT_UINT_GE(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, #actual, expected, #expected, >=, greater or equal to)
+#define ASSERT_UINT_LE(actual, expected) _UT_ASSERT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, #actual, expected, #expected, <=, lower or equal to)
 
-#define ASSERT_STR_EQ(actual, expected) _UT_ASSERT_OP(const char *, "%s", _ut_internal_cmp_str, actual, expected, ==, equal to)
-#define ASSERT_STR_NE(actual, expected) _UT_ASSERT_OP(const char *, "%s", _ut_internal_cmp_str, actual, expected, !=, not equal to)
+#define ASSERT_STR_EQ(actual, expected) _UT_ASSERT_OP(const char *, "%s", _ut_internal_cmp_str, actual, #actual, expected, #expected, ==, equal to)
+#define ASSERT_STR_NE(actual, expected) _UT_ASSERT_OP(const char *, "%s", _ut_internal_cmp_str, actual, #actual, expected, #expected, !=, not equal to)
 
-#define ASSERT_FLT_EQ_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, ==, equal to, epsilon)
-#define ASSERT_FLT_NE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, !=, not equal to, epsilon)
-#define ASSERT_FLT_GT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, >, greater than, epsilon)
-#define ASSERT_FLT_LT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, <, lower than, epsilon)
-#define ASSERT_FLT_GE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, >=, greater or equal to, epsilon)
-#define ASSERT_FLT_LE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, <=, lower or equal to, epsilon)
+#define ASSERT_FLT_EQ_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, ==, equal to, epsilon)
+#define ASSERT_FLT_NE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, !=, not equal to, epsilon)
+#define ASSERT_FLT_GT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, >, greater than, epsilon)
+#define ASSERT_FLT_LT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, <, lower than, epsilon)
+#define ASSERT_FLT_GE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, >=, greater or equal to, epsilon)
+#define ASSERT_FLT_LE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, <=, lower or equal to, epsilon)
 
-#define ASSERT_DBL_EQ_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, ==, equal to, epsilon)
-#define ASSERT_DBL_NE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, !=, not equal to, epsilon)
-#define ASSERT_DBL_GT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, >, greater than, epsilon)
-#define ASSERT_DBL_LT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, <, lower than, epsilon)
-#define ASSERT_DBL_GE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, >=, greater or equal to, epsilon)
-#define ASSERT_DBL_LE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, <=, lower or equal to, epsilon)
+#define ASSERT_DBL_EQ_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, ==, equal to, epsilon)
+#define ASSERT_DBL_NE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, !=, not equal to, epsilon)
+#define ASSERT_DBL_GT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, >, greater than, epsilon)
+#define ASSERT_DBL_LT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, <, lower than, epsilon)
+#define ASSERT_DBL_GE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, >=, greater or equal to, epsilon)
+#define ASSERT_DBL_LE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, <=, lower or equal to, epsilon)
 
-#define ASSERT_LDBL_EQ_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, ==, equal to, epsilon)
-#define ASSERT_LDBL_NE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, !=, not equal to, epsilon)
-#define ASSERT_LDBL_GT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, >, greater than, epsilon)
-#define ASSERT_LDBL_LT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, <, lower than, epsilon)
-#define ASSERT_LDBL_GE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, >=, greater or equal to, epsilon)
-#define ASSERT_LDBL_LE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, <=, lower or equal to, epsilon)
+#define ASSERT_LDBL_EQ_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, ==, equal to, epsilon)
+#define ASSERT_LDBL_NE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, !=, not equal to, epsilon)
+#define ASSERT_LDBL_GT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, >, greater than, epsilon)
+#define ASSERT_LDBL_LT_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, <, lower than, epsilon)
+#define ASSERT_LDBL_GE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, >=, greater or equal to, epsilon)
+#define ASSERT_LDBL_LE_EPSILON(actual, expected, epsilon) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, <=, lower or equal to, epsilon)
 
-#define ASSERT_FLT_EQ(actual, expected) ASSERT_FLT_EQ_EPSILON(actual, expected, _UT_FLT_EPSILON)
-#define ASSERT_FLT_NE(actual, expected) ASSERT_FLT_NE_EPSILON(actual, expected, _UT_FLT_EPSILON)
-#define ASSERT_FLT_GT(actual, expected) ASSERT_FLT_GT_EPSILON(actual, expected, _UT_FLT_EPSILON)
-#define ASSERT_FLT_LT(actual, expected) ASSERT_FLT_LT_EPSILON(actual, expected, _UT_FLT_EPSILON)
-#define ASSERT_FLT_GE(actual, expected) ASSERT_FLT_GE_EPSILON(actual, expected, _UT_FLT_EPSILON)
-#define ASSERT_FLT_LE(actual, expected) ASSERT_FLT_LE_EPSILON(actual, expected, _UT_FLT_EPSILON)
+#define ASSERT_FLT_EQ(actual, expected) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, ==, equal to, _UT_FLT_EPSILON)
+#define ASSERT_FLT_NE(actual, expected) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, !=, not equal to, _UT_FLT_EPSILON)
+#define ASSERT_FLT_GT(actual, expected) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, >, greater than, _UT_FLT_EPSILON)
+#define ASSERT_FLT_LT(actual, expected) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, <, lower than, _UT_FLT_EPSILON)
+#define ASSERT_FLT_GE(actual, expected) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, >=, greater or equal to, _UT_FLT_EPSILON)
+#define ASSERT_FLT_LE(actual, expected) _UT_ASSERT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, <=, lower or equal to, _UT_FLT_EPSILON)
 
-#define ASSERT_DBL_EQ(actual, expected) ASSERT_DBL_EQ_EPSILON(actual, expected, _UT_DBL_EPSILON)
-#define ASSERT_DBL_NE(actual, expected) ASSERT_DBL_NE_EPSILON(actual, expected, _UT_DBL_EPSILON)
-#define ASSERT_DBL_GT(actual, expected) ASSERT_DBL_GT_EPSILON(actual, expected, _UT_DBL_EPSILON)
-#define ASSERT_DBL_LT(actual, expected) ASSERT_DBL_LT_EPSILON(actual, expected, _UT_DBL_EPSILON)
-#define ASSERT_DBL_GE(actual, expected) ASSERT_DBL_GE_EPSILON(actual, expected, _UT_DBL_EPSILON)
-#define ASSERT_DBL_LE(actual, expected) ASSERT_DBL_LE_EPSILON(actual, expected, _UT_DBL_EPSILON)
+#define ASSERT_DBL_EQ(actual, expected) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, ==, equal to, _UT_DBL_EPSILON)
+#define ASSERT_DBL_NE(actual, expected) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, !=, not equal to, _UT_DBL_EPSILON)
+#define ASSERT_DBL_GT(actual, expected) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, >, greater than, _UT_DBL_EPSILON)
+#define ASSERT_DBL_LT(actual, expected) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, <, lower than, _UT_DBL_EPSILON)
+#define ASSERT_DBL_GE(actual, expected) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, >=, greater or equal to, _UT_DBL_EPSILON)
+#define ASSERT_DBL_LE(actual, expected) _UT_ASSERT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, <=, lower or equal to, _UT_DBL_EPSILON)
 
-#define ASSERT_LDBL_EQ(actual, expected) ASSERT_LDBL_EQ_EPSILON(actual, expected, _UT_LDBL_EPSILON)
-#define ASSERT_LDBL_NE(actual, expected) ASSERT_LDBL_NE_EPSILON(actual, expected, _UT_LDBL_EPSILON)
-#define ASSERT_LDBL_GT(actual, expected) ASSERT_LDBL_GT_EPSILON(actual, expected, _UT_LDBL_EPSILON)
-#define ASSERT_LDBL_LT(actual, expected) ASSERT_LDBL_LT_EPSILON(actual, expected, _UT_LDBL_EPSILON)
-#define ASSERT_LDBL_GE(actual, expected) ASSERT_LDBL_GE_EPSILON(actual, expected, _UT_LDBL_EPSILON)
-#define ASSERT_LDBL_LE(actual, expected) ASSERT_LDBL_LE_EPSILON(actual, expected, _UT_LDBL_EPSILON)
+#define ASSERT_LDBL_EQ(actual, expected) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, ==, equal to, _UT_LDBL_EPSILON)
+#define ASSERT_LDBL_NE(actual, expected) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, !=, not equal to, _UT_LDBL_EPSILON)
+#define ASSERT_LDBL_GT(actual, expected) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, >, greater than, _UT_LDBL_EPSILON)
+#define ASSERT_LDBL_LT(actual, expected) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, <, lower than, _UT_LDBL_EPSILON)
+#define ASSERT_LDBL_GE(actual, expected) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, >=, greater or equal to, _UT_LDBL_EPSILON)
+#define ASSERT_LDBL_LE(actual, expected) _UT_ASSERT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, <=, lower or equal to, _UT_LDBL_EPSILON)
 
-#define _UT_RUN_MEM_OP(actual, expected, size, op, rel, fatal)                                                       \
-  do {                                                                                                               \
-    const void *_ut_a_ = &(actual);                                                                                  \
-    const void *_ut_b_ = &(expected);                                                                                \
-    int res = _ut_internal_cmp_mem(_ut_a_, _ut_b_, size);                                                            \
-    if (!(res op 0)) {                                                                                               \
-      char buf_a[2 * (size) + 1];                                                                                    \
-      char buf_b[2 * (size) + 1];                                                                                    \
-      _ut_internal_hex_dump(_ut_a_, (size), buf_a, sizeof(buf_a));                                                   \
-      _ut_internal_hex_dump(_ut_b_, (size), buf_b, sizeof(buf_b));                                                   \
-      _ut_internal_report_fail_cmp(__FILE__, __LINE__, fatal,                                                        \
-                                   "Expected " BOLD_MAGENTA #actual " " RESET "(" BOLD_MAGENTA "%s" RESET ") " RESET \
-                                   "to be " #rel " " BOLD_CYAN #expected " " RESET "(" BOLD_CYAN "%s" RESET ")",     \
-                                   buf_a, buf_b);                                                                    \
-      if (fatal)                                                                                                     \
-        return;                                                                                                      \
-    } else {                                                                                                         \
-      _ut_global_runner.current_test->assertions_passed++;                                                           \
-    }                                                                                                                \
+#define _UT_RUN_MEM_OP(actual, actual_str, expected, expected_str, size, op, rel, fatal)                       \
+  do {                                                                                                         \
+    const void *_ut_a_ = &(actual);                                                                            \
+    const void *_ut_b_ = &(expected);                                                                          \
+    int res = _ut_internal_cmp_mem(_ut_a_, _ut_b_, size);                                                      \
+    if (!(res op 0)) {                                                                                         \
+      char buf_a[2 * (size) + 1];                                                                              \
+      char buf_b[2 * (size) + 1];                                                                              \
+      _ut_internal_hex_dump(_ut_a_, (size), buf_a, sizeof(buf_a));                                             \
+      _ut_internal_hex_dump(_ut_b_, (size), buf_b, sizeof(buf_b));                                             \
+      _ut_internal_report_fail_cmp(__FILE__, __LINE__, fatal,                                                  \
+                                   "Expected " BOLD_MAGENTA "%s " RESET "(" BOLD_MAGENTA "%s" RESET ") " RESET \
+                                   "to be %s " BOLD_CYAN "%s " RESET "(" BOLD_CYAN "%s" RESET ")",             \
+                                   actual_str, buf_a, #rel, expected_str, buf_b);                              \
+      if (fatal)                                                                                               \
+        return;                                                                                                \
+    } else {                                                                                                   \
+      _ut_global_runner.current_test->assertions_passed++;                                                     \
+    }                                                                                                          \
   } while (0)
 
-#define _UT_ASSERT_MEM_OP(actual, expected, size, op, rel) _UT_RUN_MEM_OP(actual, expected, size, op, rel, 1)
-#define _UT_EXPECT_MEM_OP(actual, expected, size, op, rel) _UT_RUN_MEM_OP(actual, expected, size, op, rel, 0)
+#define _UT_ASSERT_MEM_OP(actual, actual_str, expected, expected_str, size, op, rel) _UT_RUN_MEM_OP(actual, actual_str, expected, expected_str, size, op, rel, 1)
+#define _UT_EXPECT_MEM_OP(actual, actual_str, expected, expected_str, size, op, rel) _UT_RUN_MEM_OP(actual, actual_str, expected, expected_str, size, op, rel, 0)
 
-#define ASSERT_MEM_EQ(actual, expected, size) _UT_ASSERT_MEM_OP(actual, expected, size, ==, equal to)
-#define ASSERT_MEM_NE(actual, expected, size) _UT_ASSERT_MEM_OP(actual, expected, size, !=, not equal to)
-#define ASSERT_MEM_GT(actual, expected, size) _UT_ASSERT_MEM_OP(actual, expected, size, >, greater than)
-#define ASSERT_MEM_LT(actual, expected, size) _UT_ASSERT_MEM_OP(actual, expected, size, <, lower than)
-#define ASSERT_MEM_GE(actual, expected, size) _UT_ASSERT_MEM_OP(actual, expected, size, >=, greater or equal to)
-#define ASSERT_MEM_LE(actual, expected, size) _UT_ASSERT_MEM_OP(actual, expected, size, <=, lower or equal to)
+#define ASSERT_MEM_EQ(actual, expected, size) _UT_ASSERT_MEM_OP(actual, #actual, expected, #expected, size, ==, equal to)
+#define ASSERT_MEM_NE(actual, expected, size) _UT_ASSERT_MEM_OP(actual, #actual, expected, #expected, size, !=, not equal to)
+#define ASSERT_MEM_GT(actual, expected, size) _UT_ASSERT_MEM_OP(actual, #actual, expected, #expected, size, >, greater than)
+#define ASSERT_MEM_LT(actual, expected, size) _UT_ASSERT_MEM_OP(actual, #actual, expected, #expected, size, <, lower than)
+#define ASSERT_MEM_GE(actual, expected, size) _UT_ASSERT_MEM_OP(actual, #actual, expected, #expected, size, >=, greater or equal to)
+#define ASSERT_MEM_LE(actual, expected, size) _UT_ASSERT_MEM_OP(actual, #actual, expected, #expected, size, <=, lower or equal to)
 
 #ifndef UT_TOSTR_BUFF_SIZE
 #define UT_TOSTR_BUFF_SIZE 256
 #endif
 
-#define _UT_RUN_CUSTOM_OP(type, cmp, to_str, actual, expected, op, rel, fatal, ...)                                  \
-  do {                                                                                                               \
-    type _ut_a_ = (actual);                                                                                          \
-    type _ut_b_ = (expected);                                                                                        \
-    int res = cmp(&_ut_a_, &_ut_b_, ##__VA_ARGS__);                                                                  \
-    if (!(res op 0)) {                                                                                               \
-      char buf_a[UT_TOSTR_BUFF_SIZE];                                                                                \
-      char buf_b[UT_TOSTR_BUFF_SIZE];                                                                                \
-      to_str(&a, buf_a, UT_TOSTR_BUFF_SIZE);                                                                         \
-      to_str(&b, buf_b, UT_TOSTR_BUFF_SIZE);                                                                         \
-                                                                                                                     \
-      _ut_internal_report_fail_cmp(__FILE__, __LINE__, fatal,                                                        \
-                                   "Expected " BOLD_MAGENTA #actual " " RESET "(" BOLD_MAGENTA "%s" RESET ") " RESET \
-                                   "to be " #rel " " BOLD_CYAN #expected " " RESET "(" BOLD_CYAN "%s" RESET ")",     \
-                                   buf_a, buf_b);                                                                    \
-      if (fatal)                                                                                                     \
-        return;                                                                                                      \
-    } else {                                                                                                         \
-      _ut_global_runner.current_test->assertions_passed++;                                                           \
-    }                                                                                                                \
+#define _UT_RUN_CUSTOM_OP(type, cmp, to_str, actual, actual_str, expected, expected_str, op, rel, fatal, ...)  \
+  do {                                                                                                         \
+    type _ut_a_ = (actual);                                                                                    \
+    type _ut_b_ = (expected);                                                                                  \
+    int res = cmp(&_ut_a_, &_ut_b_, ##__VA_ARGS__);                                                            \
+    if (!(res op 0)) {                                                                                         \
+      char buf_a[UT_TOSTR_BUFF_SIZE];                                                                          \
+      char buf_b[UT_TOSTR_BUFF_SIZE];                                                                          \
+      to_str(&a, buf_a, UT_TOSTR_BUFF_SIZE);                                                                   \
+      to_str(&b, buf_b, UT_TOSTR_BUFF_SIZE);                                                                   \
+                                                                                                               \
+      _ut_internal_report_fail_cmp(__FILE__, __LINE__, fatal,                                                  \
+                                   "Expected " BOLD_MAGENTA "%s " RESET "(" BOLD_MAGENTA "%s" RESET ") " RESET \
+                                   "to be %s " BOLD_CYAN "%s " RESET "(" BOLD_CYAN "%s" RESET ")",             \
+                                   actual_str, buf_a, #rel, expected_str, buf_b);                              \
+      if (fatal)                                                                                               \
+        return;                                                                                                \
+    } else {                                                                                                   \
+      _ut_global_runner.current_test->assertions_passed++;                                                     \
+    }                                                                                                          \
   } while (0)
 
-#define _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, expected, op, rel, ...) _UT_RUN_CUSTOM_OP(type, cmp, to_str, actual, expected, op, rel, 1, ##__VA_ARGS__)
-#define _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, expected, op, rel, ...) _UT_RUN_CUSTOM_OP(type, cmp, to_str, actual, expected, op, rel, 0, ##__VA_ARGS__)
+#define _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, actual_str, expected, expected_str, op, rel, ...) _UT_RUN_CUSTOM_OP(type, cmp, to_str, actual, actual_str, expected, expected_str, op, rel, 1, ##__VA_ARGS__)
+#define _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, actual_str, expected, expected_str, op, rel, ...) _UT_RUN_CUSTOM_OP(type, cmp, to_str, actual, actual_str, expected, expected_str, op, rel, 0, ##__VA_ARGS__)
 
-#define ASSERT_CUSTOM_EQ(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, expected, ==, equal to, ##__VA_ARGS__)
-#define ASSERT_CUSTOM_NE(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, expected, !=, not equal to, ##__VA_ARGS__)
-#define ASSERT_CUSTOM_GT(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, expected, >, greater than, ##__VA_ARGS__)
-#define ASSERT_CUSTOM_LT(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, expected, <, lower than, ##__VA_ARGS__)
-#define ASSERT_CUSTOM_GE(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, expected, >=, greater or equal to, ##__VA_ARGS__)
-#define ASSERT_CUSTOM_LE(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, expected, <=, lower or equal to, ##__VA_ARGS__)
+#define ASSERT_CUSTOM_EQ(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, #actual, expected, #expected, ==, equal to, ##__VA_ARGS__)
+#define ASSERT_CUSTOM_NE(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, #actual, expected, #expected, !=, not equal to, ##__VA_ARGS__)
+#define ASSERT_CUSTOM_GT(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, #actual, expected, #expected, >, greater than, ##__VA_ARGS__)
+#define ASSERT_CUSTOM_LT(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, #actual, expected, #expected, <, lower than, ##__VA_ARGS__)
+#define ASSERT_CUSTOM_GE(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, #actual, expected, #expected, >=, greater or equal to, ##__VA_ARGS__)
+#define ASSERT_CUSTOM_LE(type, cmp, to_str, actual, expected, ...) _UT_ASSERT_CUSTOM_OP(type, cmp, to_str, actual, #actual, expected, #expected, <=, lower or equal to, ##__VA_ARGS__)
 
 // EXPECTS
 #define EXPECT_TRUE(cond) \
@@ -256,78 +256,78 @@ RUNNER_INFO _ut_global_runner = {0};
 #define EXPECT_FALSE(cond) \
   _ut_internal_check_condition(!(cond), "!(" #cond ")", __FILE__, __LINE__, 0)
 
-#define EXPECT_INT_EQ(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, ==, equal to)
-#define EXPECT_INT_NE(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, !=, not equal to)
-#define EXPECT_INT_GT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, >, greater than)
-#define EXPECT_INT_LT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, <, lower than)
-#define EXPECT_INT_GE(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, >=, greater or equal to)
-#define EXPECT_INT_LE(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, expected, <=, lower or equal to)
+#define EXPECT_INT_EQ(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, #actual, expected, #expected, ==, equal to)
+#define EXPECT_INT_NE(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, #actual, expected, #expected, !=, not equal to)
+#define EXPECT_INT_GT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, #actual, expected, #expected, >, greater than)
+#define EXPECT_INT_LT(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, #actual, expected, #expected, <, lower than)
+#define EXPECT_INT_GE(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, #actual, expected, #expected, >=, greater or equal to)
+#define EXPECT_INT_LE(actual, expected) _UT_EXPECT_OP(intmax_t, "%jd", _ut_internal_cmp_int, actual, #actual, expected, #expected, <=, lower or equal to)
 
-#define EXPECT_UINT_EQ(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, ==, equal to)
-#define EXPECT_UINT_NE(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, !=, not equal to)
-#define EXPECT_UINT_GT(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, >, greater than)
-#define EXPECT_UINT_LT(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, <, lower than)
-#define EXPECT_UINT_GE(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, >=, greater or equal to)
-#define EXPECT_UINT_LE(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, expected, <=, lower or equal to)
+#define EXPECT_UINT_EQ(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, #actual, expected, #expected, ==, equal to)
+#define EXPECT_UINT_NE(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, #actual, expected, #expected, !=, not equal to)
+#define EXPECT_UINT_GT(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, #actual, expected, #expected, >, greater than)
+#define EXPECT_UINT_LT(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, #actual, expected, #expected, <, lower than)
+#define EXPECT_UINT_GE(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, #actual, expected, #expected, >=, greater or equal to)
+#define EXPECT_UINT_LE(actual, expected) _UT_EXPECT_OP(uintmax_t, "%ju", _ut_internal_cmp_uint, actual, #actual, expected, #expected, <=, lower or equal to)
 
-#define EXPECT_STR_EQ(actual, expected) _UT_EXPECT_OP(const char *, "%s", _ut_internal_cmp_str, actual, expected, ==, equal to)
-#define EXPECT_STR_NE(actual, expected) _UT_EXPECT_OP(const char *, "%s", _ut_internal_cmp_str, actual, expected, !=, not equal to)
+#define EXPECT_STR_EQ(actual, expected) _UT_EXPECT_OP(const char *, "%s", _ut_internal_cmp_str, actual, #actual, expected, #expected, ==, equal to)
+#define EXPECT_STR_NE(actual, expected) _UT_EXPECT_OP(const char *, "%s", _ut_internal_cmp_str, actual, #actual, expected, #expected, !=, not equal to)
 
-#define EXPECT_FLT_EQ_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, ==, equal to, epsilon)
-#define EXPECT_FLT_NE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, !=, not equal to, epsilon)
-#define EXPECT_FLT_GT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, >, greater than, epsilon)
-#define EXPECT_FLT_LT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, <, lower than, epsilon)
-#define EXPECT_FLT_GE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, >=, greater or equal to, epsilon)
-#define EXPECT_FLT_LE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, expected, <=, lower or equal to, epsilon)
+#define EXPECT_FLT_EQ_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, ==, equal to, epsilon)
+#define EXPECT_FLT_NE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, !=, not equal to, epsilon)
+#define EXPECT_FLT_GT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, >, greater than, epsilon)
+#define EXPECT_FLT_LT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, <, lower than, epsilon)
+#define EXPECT_FLT_GE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, >=, greater or equal to, epsilon)
+#define EXPECT_FLT_LE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, <=, lower or equal to, epsilon)
 
-#define EXPECT_DBL_EQ_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, ==, equal to, epsilon)
-#define EXPECT_DBL_NE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, !=, not equal to, epsilon)
-#define EXPECT_DBL_GT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, >, greater than, epsilon)
-#define EXPECT_DBL_LT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, <, lower than, epsilon)
-#define EXPECT_DBL_GE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, >=, greater or equal to, epsilon)
-#define EXPECT_DBL_LE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, expected, <=, lower or equal to, epsilon)
+#define EXPECT_DBL_EQ_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, ==, equal to, epsilon)
+#define EXPECT_DBL_NE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, !=, not equal to, epsilon)
+#define EXPECT_DBL_GT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, >, greater than, epsilon)
+#define EXPECT_DBL_LT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, <, lower than, epsilon)
+#define EXPECT_DBL_GE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, >=, greater or equal to, epsilon)
+#define EXPECT_DBL_LE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, <=, lower or equal to, epsilon)
 
-#define EXPECT_LDBL_EQ_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, ==, equal to, epsilon)
-#define EXPECT_LDBL_NE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, !=, not equal to, epsilon)
-#define EXPECT_LDBL_GT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, >, greater than, epsilon)
-#define EXPECT_LDBL_LT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, <, lower than, epsilon)
-#define EXPECT_LDBL_GE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, >=, greater or equal to, epsilon)
-#define EXPECT_LDBL_LE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, expected, <=, lower or equal to, epsilon)
+#define EXPECT_LDBL_EQ_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, ==, equal to, epsilon)
+#define EXPECT_LDBL_NE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, !=, not equal to, epsilon)
+#define EXPECT_LDBL_GT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, >, greater than, epsilon)
+#define EXPECT_LDBL_LT_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, <, lower than, epsilon)
+#define EXPECT_LDBL_GE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, >=, greater or equal to, epsilon)
+#define EXPECT_LDBL_LE_EPSILON(actual, expected, epsilon) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, <=, lower or equal to, epsilon)
 
-#define EXPECT_FLT_EQ(actual, expected) EXPECT_FLT_EQ_EPSILON(actual, expected, _UT_FLT_EPSILON)
-#define EXPECT_FLT_NE(actual, expected) EXPECT_FLT_NE_EPSILON(actual, expected, _UT_FLT_EPSILON)
-#define EXPECT_FLT_GT(actual, expected) EXPECT_FLT_GT_EPSILON(actual, expected, _UT_FLT_EPSILON)
-#define EXPECT_FLT_LT(actual, expected) EXPECT_FLT_LT_EPSILON(actual, expected, _UT_FLT_EPSILON)
-#define EXPECT_FLT_GE(actual, expected) EXPECT_FLT_GE_EPSILON(actual, expected, _UT_FLT_EPSILON)
-#define EXPECT_FLT_LE(actual, expected) EXPECT_FLT_LE_EPSILON(actual, expected, _UT_FLT_EPSILON)
+#define EXPECT_FLT_EQ(actual, expected) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, ==, equal to, _UT_FLT_EPSILON)
+#define EXPECT_FLT_NE(actual, expected) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, !=, not equal to, _UT_FLT_EPSILON)
+#define EXPECT_FLT_GT(actual, expected) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, >, greater than, _UT_FLT_EPSILON)
+#define EXPECT_FLT_LT(actual, expected) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, <, lower than, _UT_FLT_EPSILON)
+#define EXPECT_FLT_GE(actual, expected) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, >=, greater or equal to, _UT_FLT_EPSILON)
+#define EXPECT_FLT_LE(actual, expected) _UT_EXPECT_OP(float, "%.9g", _ut_internal_cmp_flt, actual, #actual, expected, #expected, <=, lower or equal to, _UT_FLT_EPSILON)
 
-#define EXPECT_DBL_EQ(actual, expected) EXPECT_DBL_EQ_EPSILON(actual, expected, _UT_DBL_EPSILON)
-#define EXPECT_DBL_NE(actual, expected) EXPECT_DBL_NE_EPSILON(actual, expected, _UT_DBL_EPSILON)
-#define EXPECT_DBL_GT(actual, expected) EXPECT_DBL_GT_EPSILON(actual, expected, _UT_DBL_EPSILON)
-#define EXPECT_DBL_LT(actual, expected) EXPECT_DBL_LT_EPSILON(actual, expected, _UT_DBL_EPSILON)
-#define EXPECT_DBL_GE(actual, expected) EXPECT_DBL_GE_EPSILON(actual, expected, _UT_DBL_EPSILON)
-#define EXPECT_DBL_LE(actual, expected) EXPECT_DBL_LE_EPSILON(actual, expected, _UT_DBL_EPSILON)
+#define EXPECT_DBL_EQ(actual, expected) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, ==, equal to, _UT_DBL_EPSILON)
+#define EXPECT_DBL_NE(actual, expected) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, !=, not equal to, _UT_DBL_EPSILON)
+#define EXPECT_DBL_GT(actual, expected) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, >, greater than, _UT_DBL_EPSILON)
+#define EXPECT_DBL_LT(actual, expected) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, <, lower than, _UT_DBL_EPSILON)
+#define EXPECT_DBL_GE(actual, expected) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, >=, greater or equal to, _UT_DBL_EPSILON)
+#define EXPECT_DBL_LE(actual, expected) _UT_EXPECT_OP(double, "%.17g", _ut_internal_cmp_dbl, actual, #actual, expected, #expected, <=, lower or equal to, _UT_DBL_EPSILON)
 
-#define EXPECT_LDBL_EQ(actual, expected) EXPECT_LDBL_EQ_EPSILON(actual, expected, _UT_LDBL_EPSILON)
-#define EXPECT_LDBL_NE(actual, expected) EXPECT_LDBL_NE_EPSILON(actual, expected, _UT_LDBL_EPSILON)
-#define EXPECT_LDBL_GT(actual, expected) EXPECT_LDBL_GT_EPSILON(actual, expected, _UT_LDBL_EPSILON)
-#define EXPECT_LDBL_LT(actual, expected) EXPECT_LDBL_LT_EPSILON(actual, expected, _UT_LDBL_EPSILON)
-#define EXPECT_LDBL_GE(actual, expected) EXPECT_LDBL_GE_EPSILON(actual, expected, _UT_LDBL_EPSILON)
-#define EXPECT_LDBL_LE(actual, expected) EXPECT_LDBL_LE_EPSILON(actual, expected, _UT_LDBL_EPSILON)
+#define EXPECT_LDBL_EQ(actual, expected) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, ==, equal to, _UT_LDBL_EPSILON)
+#define EXPECT_LDBL_NE(actual, expected) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, !=, not equal to, _UT_LDBL_EPSILON)
+#define EXPECT_LDBL_GT(actual, expected) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, >, greater than, _UT_LDBL_EPSILON)
+#define EXPECT_LDBL_LT(actual, expected) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, <, lower than, _UT_LDBL_EPSILON)
+#define EXPECT_LDBL_GE(actual, expected) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, >=, greater or equal to, _UT_LDBL_EPSILON)
+#define EXPECT_LDBL_LE(actual, expected) _UT_EXPECT_OP(long double, "%.21Lg", _ut_internal_cmp_ldbl, actual, #actual, expected, #expected, <=, lower or equal to, _UT_LDBL_EPSILON)
 
-#define EXPECT_MEM_EQ(actual, expected, size) _UT_EXPECT_MEM_OP(actual, expected, size, ==, equal to)
-#define EXPECT_MEM_NE(actual, expected, size) _UT_EXPECT_MEM_OP(actual, expected, size, !=, not equal to)
-#define EXPECT_MEM_GT(actual, expected, size) _UT_EXPECT_MEM_OP(actual, expected, size, >, greater than)
-#define EXPECT_MEM_LT(actual, expected, size) _UT_EXPECT_MEM_OP(actual, expected, size, <, lower than)
-#define EXPECT_MEM_GE(actual, expected, size) _UT_EXPECT_MEM_OP(actual, expected, size, >=, greater or equal to)
-#define EXPECT_MEM_LE(actual, expected, size) _UT_EXPECT_MEM_OP(actual, expected, size, <=, lower or equal to)
+#define EXPECT_MEM_EQ(actual, expected, size) _UT_EXPECT_MEM_OP(actual, #actual, expected, #expected, size, ==, equal to)
+#define EXPECT_MEM_NE(actual, expected, size) _UT_EXPECT_MEM_OP(actual, #actual, expected, #expected, size, !=, not equal to)
+#define EXPECT_MEM_GT(actual, expected, size) _UT_EXPECT_MEM_OP(actual, #actual, expected, #expected, size, >, greater than)
+#define EXPECT_MEM_LT(actual, expected, size) _UT_EXPECT_MEM_OP(actual, #actual, expected, #expected, size, <, lower than)
+#define EXPECT_MEM_GE(actual, expected, size) _UT_EXPECT_MEM_OP(actual, #actual, expected, #expected, size, >=, greater or equal to)
+#define EXPECT_MEM_LE(actual, expected, size) _UT_EXPECT_MEM_OP(actual, #actual, expected, #expected, size, <=, lower or equal to)
 
-#define EXPECT_CUSTOM_EQ(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, expected, ==, equal to, ##__VA_ARGS__)
-#define EXPECT_CUSTOM_NE(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, expected, !=, not equal to, ##__VA_ARGS__)
-#define EXPECT_CUSTOM_GT(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, expected, >, greater than, ##__VA_ARGS__)
-#define EXPECT_CUSTOM_LT(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, expected, <, lower than, ##__VA_ARGS__)
-#define EXPECT_CUSTOM_GE(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, expected, >=, greater or equal to, ##__VA_ARGS__)
-#define EXPECT_CUSTOM_LE(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, expected, <=, lower or equal to, ##__VA_ARGS__)
+#define EXPECT_CUSTOM_EQ(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, #actual, expected, #expected, ==, equal to, ##__VA_ARGS__)
+#define EXPECT_CUSTOM_NE(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, #actual, expected, #expected, !=, not equal to, ##__VA_ARGS__)
+#define EXPECT_CUSTOM_GT(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, #actual, expected, #expected, >, greater than, ##__VA_ARGS__)
+#define EXPECT_CUSTOM_LT(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, #actual, expected, #expected, <, lower than, ##__VA_ARGS__)
+#define EXPECT_CUSTOM_GE(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, #actual, expected, #expected, >=, greater or equal to, ##__VA_ARGS__)
+#define EXPECT_CUSTOM_LE(type, cmp, to_str, actual, expected, ...) _UT_EXPECT_CUSTOM_OP(type, cmp, to_str, actual, #actual, expected, #expected, <=, lower or equal to, ##__VA_ARGS__)
 
 void _ut_internal_init_suite(SUITE_INFO *s, const char *name);
 void _ut_internal_register_suite(SUITE_INFO *s);
@@ -633,7 +633,7 @@ int _ut_internal_check_condition(int condition, const char *condition_string, co
 }
 
 int _ut_internal_report_fail_cmp(const char *filename, int linenr, int fatal, const char *fmt, ...) {
-  if (_ut_global_runner.current_test && _ut_global_runner.current_test->assertions_failed == 0)
+  if (_ut_global_runner.current_test && *(_ut_global_runner.current_assertions_failed) == 0)
     printf(BOLD_RED "[FAIL] " RESET "%s\n", _ut_global_runner.current_test->name);
 
   const char *color = fatal ? RED : YELLOW;
