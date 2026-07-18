@@ -767,4 +767,11 @@ void _ut_internal_hex_dump(const void *loc, size_t bytes, char *buf, size_t bufs
 
   buf[write_idx] = '\0';
 }
+
+#ifndef UNIT_TEST_CUSTOM_MAIN
+int main() {
+  RUN_ALL_TESTS();
+}
+#endif // UNIT_TEST_CUSTOM_MAIN
+
 #endif // UNIT_TEST_IMPLEMENTATION
